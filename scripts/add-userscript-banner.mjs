@@ -1,12 +1,14 @@
 import { readFile, writeFile } from "node:fs/promises";
 
+const { version } = JSON.parse(await readFile("package.json", "utf8"));
+
 const common = `// @match https://baiakidle.com/jogar/
 // @match https://baiakidle.com/jogar/*
 // @run-at document-start`;
 const banner = `// ==UserScript==
 // @name BaiakIdle Helper
 // @namespace baiakidle-helper
-// @version 1.0.0
+// @version ${version}
 // @description Auto Sell and Open All Glooth Bag controls for BaiakIdle.
 ${common}
 // @grant unsafeWindow
@@ -15,7 +17,7 @@ ${common}
 const devLoader = `// ==UserScript==
 // @name BaiakIdle Helper DEV
 // @namespace baiakidle-helper
-// @version 1.0.0-dev
+// @version ${version}-dev
 ${common}
 // @sandbox raw
 // @grant GM_xmlhttpRequest

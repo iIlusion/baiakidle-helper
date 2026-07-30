@@ -12,6 +12,7 @@ const STORAGE_KEY = "baiakidle-helper-v1";
 const SELL_ALL_BASE64 = "DadzZWxsYWxs1HJAkalwcm90ZWN0ZWTC";
 const OPEN_ALL_GLOOTH_BAGS_BASE64 = "Dad1c2VpdGVt1HJAk6RuYW1lpGZyb22jYWxsqmdsb290aCBiYWeoYmFja3BhY2vD";
 const MCP_REPOSITORY = "https://github.com/iIlusion/baiakidle-mcp";
+const DISCORD_SUPPORT = "https://discord.gg/Hy7HqcAgQG";
 
 type Settings = { autoSell: boolean; autoOpenAll: boolean };
 type View = "automation" | "development";
@@ -97,6 +98,14 @@ function RadioIcon(): React.JSX.Element {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
       <circle cx="12" cy="12" r="2" />
       <path d="M7.8 7.8a6 6 0 0 0 0 8.4M16.2 7.8a6 6 0 0 1 0 8.4M4.9 4.9a10 10 0 0 0 0 14.2M19.1 4.9a10 10 0 0 1 0 14.2" />
+    </svg>
+  );
+}
+
+function ChatIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+      <path d="M7 8.5h10M7 12h7M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
     </svg>
   );
 }
@@ -221,6 +230,16 @@ function ControlMenu(): React.JSX.Element {
           ) : (
             <Development bridgeConnected={bridgeConnected} />
           )}
+
+          <footer className="baiak-support">
+            <div className="baiak-support-intro">
+              <span className="baiak-support-icon"><ChatIcon /></span>
+              <span><strong>Suporte &amp; contato</strong><small>Dúvidas, bugs ou sugestões</small></span>
+            </div>
+            <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer">
+              Entrar no Discord <span aria-hidden="true">↗</span>
+            </a>
+          </footer>
         </div>,
         page.document.body
       )}

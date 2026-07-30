@@ -1,5 +1,10 @@
 # BaiakIdle Helper
 
+[![Release](https://img.shields.io/github/v/release/iIlusion/baiakidle-helper?style=flat-square&logo=github&label=release)](https://github.com/iIlusion/baiakidle-helper/releases/latest)
+[![Discord](https://img.shields.io/badge/Discord-suporte-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Hy7HqcAgQG)
+[![GitHub Stars](https://img.shields.io/github/stars/iIlusion/baiakidle-helper?style=flat-square&logo=github&label=stars)](https://github.com/iIlusion/baiakidle-helper/stargazers)
+[![License](https://img.shields.io/github/license/iIlusion/baiakidle-helper?style=flat-square&label=license)](LICENSE)
+[![Tampermonkey](https://img.shields.io/badge/Tampermonkey-userscript-00485B?style=flat-square&logo=tampermonkey&logoColor=white)](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js)
 Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/jogar/) um painel integrado à interface do jogo.
 
 ## Recursos
@@ -18,6 +23,13 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 5. Use a nova aba **Helper** na barra superior do jogo.
 
 As duas automações começam habilitadas. O estado de cada opção é salvo em `localStorage` e pode ser alterado a qualquer momento no painel.
+
+## Suporte e contato
+
+Precisa de ajuda, encontrou um bug ou quer sugerir uma melhoria?
+
+- [Entre no Discord](https://discord.gg/Hy7HqcAgQG) para suporte e contato direto.
+- [Abra uma issue](https://github.com/iIlusion/baiakidle-helper/issues) para problemas reproduzíveis e acompanhamento público.
 
 ## Desenvolvimento
 
