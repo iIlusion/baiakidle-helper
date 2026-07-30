@@ -24,6 +24,12 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 As duas automações começam habilitadas. O estado de cada opção é salvo em `localStorage` e pode ser alterado a qualquer momento no painel.
 
+### Atualizações automáticas
+
+A partir da versão `1.0.2`, o Tampermonkey verifica `releases/latest` e instala novas versões automaticamente conforme a frequência configurada na extensão.
+
+Se você usa a versão `1.0.1` ou anterior, instale a [versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js) manualmente uma vez para ativar o auto-update.
+
 ## Suporte e contato
 
 Precisa de ajuda, encontrou um bug ou quer sugerir uma melhoria?

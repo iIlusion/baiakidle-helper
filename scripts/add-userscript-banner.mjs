@@ -10,6 +10,10 @@ const banner = `// ==UserScript==
 // @namespace baiakidle-helper
 // @version ${version}
 // @description Auto Sell and Open All Glooth Bag controls for BaiakIdle.
+// @homepageURL https://github.com/iIlusion/baiakidle-helper
+// @supportURL https://discord.gg/Hy7HqcAgQG
+// @updateURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js
+// @downloadURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js
 ${common}
 // @grant unsafeWindow
 // ==/UserScript==
