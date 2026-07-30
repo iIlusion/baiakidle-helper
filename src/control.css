@@ -1,0 +1,277 @@
+#baiakidle-control-root { display: contents; }
+
+#tab-baiak-control::before { display: none; }
+#tab-baiak-control.baiak-control-tab { min-width: 58px; }
+#tab-baiak-control .baiak-control-icon {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  color: var(--gold, #e8c34e);
+  filter: drop-shadow(0 2px 2px #000) drop-shadow(0 0 3px rgba(232, 195, 78, .3));
+}
+#tab-baiak-control .baiak-control-icon::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  border: 1px solid currentColor;
+  border-radius: 7px;
+  background: linear-gradient(145deg, #363632, #171715);
+  box-shadow: inset 0 1px rgba(255,255,255,.1), 0 0 0 2px #151513;
+  transform: rotate(45deg);
+}
+#tab-baiak-control .baiak-control-icon svg {
+  position: relative;
+  z-index: 1;
+  width: 25px;
+  height: 25px;
+  stroke-width: 1.8;
+}
+#tab-baiak-control.on .baiak-control-icon {
+  color: var(--gold2, #fff);
+  filter: drop-shadow(0 0 5px rgba(232,195,78,.75));
+}
+
+#baiakidle-control-panel {
+  position: fixed;
+  z-index: 120;
+  box-sizing: border-box;
+  width: min(420px, calc(100vw - 16px));
+  max-height: min(620px, calc(100vh - 16px));
+  overflow: auto;
+  color: var(--text, #eae8e2);
+  border: 1px solid var(--edge-hi, #5c5c56);
+  border-radius: 8px;
+  background: var(--grain), linear-gradient(180deg, rgba(255,255,255,.04), transparent 42%), var(--panel, #30302e);
+  box-shadow: 0 16px 42px rgba(0,0,0,.72), inset 0 1px rgba(255,255,255,.06);
+  font-family: system-ui, "Segoe UI", sans-serif;
+  scrollbar-color: var(--edge-hi, #5c5c56) var(--sunken, #1c1c1a);
+  animation: baiak-control-in .12s ease-out;
+}
+.baiak-control-head {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 11px 12px 10px;
+  border-bottom: 1px solid var(--edge, #4a4a46);
+  background: color-mix(in srgb, var(--panel2, #3a3a37) 96%, #161614);
+  box-shadow: inset 0 1px rgba(255,255,255,.045);
+}
+.baiak-control-head h2 {
+  margin: 0;
+  color: var(--accent, #e2e0d9);
+  font-family: var(--serif, "Palatino Linotype", Palatino, Georgia, serif);
+  font-size: 15px;
+  font-variant-caps: small-caps;
+  letter-spacing: .09em;
+  line-height: 1;
+}
+.baiak-control-head p {
+  margin: 4px 0 0;
+  color: var(--dim, #a9a69d);
+  font-size: 10px;
+  letter-spacing: .03em;
+}
+.baiak-bridge-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--dim, #a9a69d);
+  font-size: 10px;
+  white-space: nowrap;
+}
+.baiak-bridge-state svg { width: 12px; height: 12px; }
+.baiak-bridge-state.connected { color: var(--hp, #55b768); }
+
+.baiak-control-nav {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  padding: 7px 9px 0;
+  background: var(--panel, #30302e);
+}
+.baiak-control-nav button {
+  all: unset;
+  box-sizing: border-box;
+  cursor: pointer;
+  padding: 7px 10px;
+  color: var(--dim, #a9a69d);
+  border: 1px solid var(--edge, #4a4a46);
+  border-bottom-color: var(--edge-hi, #5c5c56);
+  border-radius: 4px 4px 1px 1px;
+  background: var(--sunken, #1c1c1a);
+  font-family: var(--serif, "Palatino Linotype", Palatino, Georgia, serif);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .025em;
+  text-align: center;
+}
+.baiak-control-nav button:hover { color: var(--text, #eae8e2); }
+.baiak-control-nav button.active {
+  color: var(--gold, #e8c34e);
+  border-color: var(--edge-hi, #5c5c56);
+  background: linear-gradient(180deg, rgba(232,195,78,.08), transparent), var(--panel2, #3a3a37);
+  box-shadow: inset 0 2px var(--gold, #e8c34e);
+}
+.baiak-control-nav button:focus-visible {
+  outline: 2px solid var(--gold, #e8c34e);
+  outline-offset: 1px;
+}
+
+.baiak-control-body { display: grid; gap: 7px; padding: 9px; }
+.baiak-setting-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  min-height: 58px;
+  padding: 9px 10px;
+  border: 1px solid var(--edge, #4a4a46);
+  border-top-color: var(--edge-hi, #5c5c56);
+  border-radius: var(--radius, 4px);
+  background: linear-gradient(180deg, rgba(255,255,255,.025), transparent), var(--sunken, #1c1c1a);
+  box-shadow: inset 0 1px rgba(255,255,255,.025);
+}
+.baiak-setting-row label { min-width: 0; cursor: pointer; }
+.baiak-setting-title {
+  display: block;
+  color: var(--text, #eae8e2);
+  font-family: var(--serif, "Palatino Linotype", Palatino, Georgia, serif);
+  font-size: 13px;
+  font-weight: 700;
+  letter-spacing: .025em;
+}
+.baiak-setting-description {
+  display: block;
+  margin-top: 3px;
+  color: var(--dim, #a9a69d);
+  font-size: 10.5px;
+  line-height: 1.3;
+}
+.baiak-setting-control { display: flex; align-items: center; gap: 7px; }
+.baiak-setting-control > span {
+  width: 22px;
+  color: var(--dim, #a9a69d);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-align: right;
+}
+#baiakidle-control-panel .baiak-switch {
+  all: unset;
+  position: relative;
+  box-sizing: border-box;
+  width: 38px;
+  height: 20px;
+  cursor: pointer;
+  border: 1px solid var(--edge-hi, #5c5c56);
+  border-radius: 999px;
+  background: #11110f;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.75), 0 1px rgba(255,255,255,.035);
+  transition: border-color .12s ease, background .12s ease, box-shadow .12s ease;
+}
+#baiakidle-control-panel .baiak-switch[data-state="checked"] {
+  border-color: var(--gold, #e8c34e);
+  background: #5f511e;
+  box-shadow: inset 0 0 8px rgba(232,195,78,.24), 0 0 5px rgba(232,195,78,.18);
+}
+#baiakidle-control-panel .baiak-switch:focus-visible {
+  outline: 2px solid var(--gold, #e8c34e);
+  outline-offset: 2px;
+}
+.baiak-switch-thumb {
+  display: block;
+  width: 14px;
+  height: 14px;
+  border: 1px solid #77736a;
+  border-radius: 50%;
+  background: linear-gradient(180deg, #e5e2da, #a9a59b);
+  box-shadow: 0 1px 3px rgba(0,0,0,.75);
+  transform: translateX(2px);
+  transition: transform .14s ease, border-color .14s ease, background .14s ease;
+}
+.baiak-switch-thumb[data-state="checked"] {
+  border-color: #fff0a8;
+  background: linear-gradient(180deg, #fff6c9, var(--gold, #e8c34e));
+  transform: translateX(20px);
+}
+
+.baiak-dev {
+  display: grid;
+  gap: 9px;
+  padding: 9px;
+  color: var(--dim, #a9a69d);
+  font-size: 10.5px;
+  line-height: 1.45;
+}
+.baiak-dev p { margin: 0; }
+.baiak-dev-status {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid var(--edge, #4a4a46);
+  border-top-color: var(--edge-hi, #5c5c56);
+  border-radius: var(--radius, 4px);
+  background: var(--sunken, #1c1c1a);
+}
+.baiak-dev-status strong {
+  display: block;
+  color: var(--text, #eae8e2);
+  font-family: var(--serif, "Palatino Linotype", Palatino, Georgia, serif);
+  font-size: 12px;
+}
+.baiak-dev-status > div > span { display: block; margin-top: 2px; }
+.baiak-dev-steps { display: grid; gap: 5px; margin: 0; padding-left: 22px; }
+.baiak-dev a { color: var(--gold, #e8c34e); text-underline-offset: 2px; }
+.baiak-dev code,
+.baiak-dev pre {
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  font-size: 9.5px;
+}
+.baiak-dev code {
+  padding: 1px 3px;
+  color: #f0df99;
+  border: 1px solid var(--edge, #4a4a46);
+  border-radius: 3px;
+  background: #171715;
+}
+.baiak-dev pre {
+  overflow-x: auto;
+  margin: 0;
+  padding: 9px;
+  color: #d7d3c8;
+  border: 1px solid var(--edge, #4a4a46);
+  border-radius: var(--radius, 4px);
+  background: #151513;
+  line-height: 1.45;
+  white-space: pre;
+}
+.baiak-dev-footnote {
+  padding-left: 8px;
+  color: var(--gold, #e8c34e);
+  border-left: 2px solid var(--gold, #e8c34e);
+}
+
+@keyframes baiak-control-in {
+  from { opacity: 0; transform: translateY(-4px) scale(.985); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+@media (max-width: 620px) {
+  #tab-baiak-control.baiak-control-tab { min-width: auto; }
+  #tab-baiak-control .baiak-control-icon { width: 26px; height: 26px; }
+  #tab-baiak-control .baiak-control-icon::before { inset: 4px; border-radius: 5px; }
+  #tab-baiak-control .baiak-control-icon svg { width: 17px; height: 17px; }
+  .baiak-control-head { align-items: flex-start; }
+  .baiak-dev-status { align-items: flex-start; flex-direction: column; }
+}
+@media (prefers-reduced-motion: reduce) {
+  #baiakidle-control-panel { animation: none; }
+  .baiak-switch, .baiak-switch-thumb { transition: none !important; }
+}
