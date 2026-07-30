@@ -13,7 +13,7 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 1. Instale o [Tampermonkey](https://www.tampermonkey.net/) no navegador.
 2. Ative a permissão **Allow User Scripts** nas configurações da extensão, caso o navegador a exija.
-3. [Instale o BaiakIdle Helper](https://raw.githubusercontent.com/iIlusion/baiakidle-helper/main/dist/baiakidle-helper.user.js).
+3. [Instale a versão mais recente do BaiakIdle Helper](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js).
 4. Abra ou recarregue `https://baiakidle.com/jogar/`.
 5. Use a nova aba **Helper** na barra superior do jogo.
 
@@ -30,7 +30,7 @@ npm install
 npm run build
 ```
 
-O build gera somente os userscripts em `dist/`:
+O build gera localmente os userscripts em `dist/` (a pasta é ignorada pelo Git):
 
 - `dist/baiakidle-helper.user.js`: versão de produção;
 - `dist/baiakidle-helper.dev.user.js`: loader para desenvolvimento local.
@@ -73,7 +73,7 @@ src/
 scripts/
   dev.mjs                servidor local e build incremental
   add-userscript-banner.mjs
-dist/                    userscripts instaláveis
+dist/                    userscripts locais, publicados apenas nos releases
 ```
 
 ## Privacidade e uso
