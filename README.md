@@ -11,7 +11,7 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 ### Loot & inventário
 
-- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão **90%**).
+- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão **90%**). Com **Auto Transfer** ligado, move as raridades marcadas para o backpack **antes** de vender (ignora o cooldown do loop de transfer).
 - **Open All Glooth Bag:** abre todas as Glooth Bags quando existe espaço e a venda não está em cooldown.
 - **Auto Sell Supply Potions:** move potions da Supply Pouch para a Loot Pouch e vende (`sell all`). Filtros opcionais:
   - só no Treino online;
@@ -23,7 +23,7 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 - **Auto Hunt:** na cidade, entra na hunt escolhida no catálogo (pacote de stage + fallback DOM).
 - **Treino ↔ Hunt por stamina:** com Auto Hunt ligado, roteia automaticamente:
-  - stamina ≤ limiar (padrão **1h**) → vai ao Treino online (cidade ou hunt);
+  - stamina ≤ limiar (padrão **378 min / 6h18m**, 15% de 42h) → vai ao Treino online e **só depois** esvazia a Loot Pouch (transfer de raridades + `sell all`, aguardando cooldown até vender). O default evita hunt com **0.5× XP e gold** (penalidade com stamina abaixo de 15%); pouch vazia libera open glooth / sell potions no Treino;
   - stamina ≥ limiar (padrão **42h**, máx. 42h / 2520 min) → volta à hunt alvo.
 
 ### Sessão, market e desempenho

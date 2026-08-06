@@ -1,6 +1,5 @@
 import {
   OPEN_ALL_GLOOTH_BAGS_BASE64,
-  SELL_ALL_BASE64,
   supplyMoveToLootPacket
 } from "../packets";
 import { sendRawPacket } from "../socket";
@@ -12,7 +11,8 @@ import {
   supplyPotionNames,
   type InventoryState
 } from "./state";
-import { isTransferring, runAutoTransfer } from "./transfer";
+import { isSelling, sellAllRespectingTransfer } from "./sell";
+import { hasMarkedTransferItems, isTransferring, runAutoTransfer } from "./transfer";
 
 declare const unsafeWindow: Window & typeof globalThis;
 
@@ -48,6 +48,7 @@ export function startScheduler(api: SchedulerApi): void {
     const settings = api.getSettings();
     const doc = page.document;
     const navBusy = isHuntEntering();
+    const sellBusy = isSelling() || isTransferring();
 
     if (
       settings.autoHunt &&
@@ -64,7 +65,7 @@ export function startScheduler(api: SchedulerApi): void {
     const state = readInventory(doc);
     if (!state) return;
 
-    if (settings.autoTransfer && !isTransferring() && !navBusy) {
+    if (settings.autoTransfer && !isTransferring() && !navBusy && !isSelling()) {
       void runAutoTransfer(settings, doc);
     }
 
@@ -75,17 +76,25 @@ export function startScheduler(api: SchedulerApi): void {
     if (
       settings.autoSell &&
       sellReady &&
-      state.canSell &&
       !sellLatched &&
-      !isTransferring() &&
+      !sellBusy &&
       !navBusy
     ) {
-      sellLatched = sendRawPacket(SELL_ALL_BASE64);
+      // Transfer marked rarities first (even if transfer loop is on cooldown), then sell.
+      // Start when sell is free, or when there are marked rarities still to rescue.
+      const needTransfer = hasMarkedTransferItems(settings, doc);
+      if (state.canSell || needTransfer) {
+        sellLatched = true;
+        void sellAllRespectingTransfer(settings, doc).then(ok => {
+          // Stay latched only if sell was sent or pouch emptied; retry when cooldown ends.
+          if (!ok) sellLatched = false;
+        });
+      }
     }
 
     if (!settings.autoOpenAll || !state.hasGloothBag || state.full || state.sellCooldown) {
       openLatched = false;
-    } else if (!openLatched && !navBusy) {
+    } else if (!openLatched && !navBusy && !sellBusy) {
       openLatched = sendRawPacket(OPEN_ALL_GLOOTH_BAGS_BASE64);
     }
 
@@ -95,7 +104,7 @@ export function startScheduler(api: SchedulerApi): void {
     }
 
     if (!supplyPotionJob) {
-      if (state.sellCooldown || !supplyPotionGuardsPass(settings, state, doc, page.document.title)) {
+      if (state.sellCooldown || sellBusy || !supplyPotionGuardsPass(settings, state, doc, page.document.title)) {
         return;
       }
       const potions = supplyPotionNames(doc);
@@ -109,17 +118,21 @@ export function startScheduler(api: SchedulerApi): void {
     }
 
     if (!supplyPotionJob.sold) {
-      if (state.sellCooldown) return;
+      if (state.sellCooldown || sellBusy) return;
       if (Date.now() - supplyPotionJob.movedAt < SUPPLY_POTION_SELL_DELAY_MS) return;
       if (state.current === 0) {
         if (Date.now() - supplyPotionJob.movedAt < 2_000) return;
         supplyPotionJob = null;
         return;
       }
-      if (sendRawPacket(SELL_ALL_BASE64)) {
-        supplyPotionJob.sold = true;
-        sellLatched = true;
-      }
+      supplyPotionJob.sold = true;
+      sellLatched = true;
+      void sellAllRespectingTransfer(settings, doc).then(ok => {
+        if (!ok && supplyPotionJob) {
+          supplyPotionJob.sold = false;
+          sellLatched = false;
+        }
+      });
       return;
     }
 

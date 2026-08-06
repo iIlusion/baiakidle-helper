@@ -2,6 +2,7 @@ import { cityPresencePacket, modePacket, stagePacket } from "../packets";
 import { gameplayConnected, sendRawPacket } from "../socket";
 import { huntById } from "../data/hunts";
 import type { Settings } from "./settings";
+import { drainLootPouch } from "./sell";
 import {
   inTreinoOnline,
   isAlreadyInHunt,
@@ -286,8 +287,17 @@ async function enterHuntNativeOrDom(
 }
 
 /**
+ * After arriving in Treino: transfer marked rarities, then sell until pouch is empty
+ * (waits sell cooldown as needed) so open-glooth / supply potions can run.
+ */
+async function afterTreinoDrainLoot(settings: Settings, doc: Document): Promise<void> {
+  console.info("[BaiakIdle Helper] Treino reached — draining Loot Pouch (transfer → sell)");
+  await drainLootPouch(settings, doc, "treino drain");
+}
+
+/**
  * Stamina routing while Auto Hunt stays ON:
- * - stamina ≤ toTreino + not in Treino (city or hunt) → Treino online
+ * - stamina ≤ toTreino + not in Treino (city or hunt) → Treino online, then drain loot
  * - stamina ≥ toHunt + in Treino online → selected hunt
  */
 export async function maybeStaminaHuntRoute(
@@ -337,7 +347,7 @@ export async function maybeStaminaHuntRoute(
     }
   }
 
-  // Low stamina outside Treino (city OR hunt) → Treino online. Auto Hunt stays ON.
+  // Low stamina outside Treino (city OR hunt) → Treino first, then drain loot. Auto Hunt stays ON.
   if (!inTreino && stamina <= toTreino) {
     lastStaminaRouteAt = now;
     staminaRouteBusy = true;
@@ -346,6 +356,8 @@ export async function maybeStaminaHuntRoute(
         `[BaiakIdle Helper] stamina ${stamina}m ≤ treinoLimit ${toTreino}m ` +
           `wave="${waveTitle(doc)}" city=${city} gameplay=${gameplayConnected()} — going to Treino online`
       );
+
+      let reachedTreino = false;
 
       // City still has gameplay WS (probe: mode:exercise on rt2 works from city).
       // Prefer WS first everywhere; DOM is only fallback if mode does not stick.
@@ -360,34 +372,42 @@ export async function maybeStaminaHuntRoute(
         console.info(`[BaiakIdle Helper] mode:exercise sent=${sent}`);
         if (sent && (await confirmTreino(doc))) {
           console.info("[BaiakIdle Helper] Treino online confirmed via WS");
-          return "treino";
+          reachedTreino = true;
         }
       } else {
         console.info("[BaiakIdle Helper] no gameplay WS — DOM teleport for Treino");
       }
 
-      const okDom = await goToTreinoViaDom(doc);
-      if (okDom && (await confirmTreino(doc))) {
-        console.info("[BaiakIdle Helper] Treino online confirmed via DOM");
-        return "treino";
+      if (!reachedTreino) {
+        const okDom = await goToTreinoViaDom(doc);
+        if (okDom && (await confirmTreino(doc))) {
+          console.info("[BaiakIdle Helper] Treino online confirmed via DOM");
+          reachedTreino = true;
+        }
       }
 
       // Retry WS once after DOM (menu path may re-bind / wake the room).
-      if (gameplayConnected()) {
+      if (!reachedTreino && gameplayConnected()) {
         if (city) sendRawPacket(cityPresencePacket(false));
         const sent = sendRawPacket(modePacket("exercise"));
         console.info(`[BaiakIdle Helper] mode:exercise retry sent=${sent}`);
         if (sent && (await confirmTreino(doc))) {
           console.info("[BaiakIdle Helper] Treino online confirmed via WS retry");
-          return "treino";
+          reachedTreino = true;
         }
       }
 
-      console.warn(
-        `[BaiakIdle Helper] Treino online NOT confirmed (wave="${waveTitle(doc)}" ` +
-          `city=${city} gameplay=${gameplayConnected()}) — will retry`
-      );
-      return false;
+      if (!reachedTreino) {
+        console.warn(
+          `[BaiakIdle Helper] Treino online NOT confirmed (wave="${waveTitle(doc)}" ` +
+            `city=${city} gameplay=${gameplayConnected()}) — will retry`
+        );
+        return false;
+      }
+
+      // Only after Treino is confirmed: transfer rarities + sell until pouch empty.
+      await afterTreinoDrainLoot(settings, doc);
+      return "treino";
     } finally {
       staminaRouteBusy = false;
     }

@@ -28,7 +28,10 @@ export type Settings = {
    * Auto Hunt stays enabled (never auto-disabled by this route).
    */
   autoHuntTreinoOnLowStamina: boolean;
-  /** Go to Treino when stamina ≤ this (minutes), from city or hunt. */
+  /**
+   * Go to Treino when stamina ≤ this (minutes), from city or hunt.
+   * Default 378 (15% of 42h): below 15% stamina, hunt yields 0.5× XP and gold.
+   */
   autoHuntStaminaToTreinoMinutes: number;
   /** Leave Treino and enter selected hunt when stamina ≥ this (minutes). */
   autoHuntStaminaToHuntMinutes: number;
@@ -69,7 +72,8 @@ export const defaults: Settings = {
   autoHunt: false,
   selectedHuntId: null,
   autoHuntTreinoOnLowStamina: false,
-  autoHuntStaminaToTreinoMinutes: 60, // 1h
+  // 378 = 15% de 42h — abaixo de 15% a hunt dá 0.5× XP e gold.
+  autoHuntStaminaToTreinoMinutes: Math.round(0.15 * (42 * 60)),
   autoHuntStaminaToHuntMinutes: 42 * 60, // 2520 = 42h
   autoReconnect: false,
   reconnectIntervalMs: 30_000,

@@ -45,19 +45,35 @@ function transferableCells(doc: Document, settings: Settings): HTMLElement[] {
   return cells;
 }
 
+export function hasMarkedTransferItems(settings: Settings, doc: Document): boolean {
+  return settings.autoTransfer && transferableCells(doc, settings).length > 0;
+}
+
+export type TransferOptions = {
+  /** Ignore the periodic loop cooldown (used before sell / drain). */
+  force?: boolean;
+};
+
 /**
  * Move equip items of selected rarities from Loot Pouch → Backpack.
  * Prefers native bagmove when data-hash is present; otherwise Shift+click
  * (client already maps that to bagmove).
  */
-export async function runAutoTransfer(settings: Settings, doc: Document): Promise<number> {
-  if (!settings.autoTransfer || transferring) return 0;
+export async function runAutoTransfer(
+  settings: Settings,
+  doc: Document,
+  options?: TransferOptions
+): Promise<number> {
+  if (!settings.autoTransfer) return 0;
+  if (transferring) return 0;
+
+  const force = Boolean(options?.force);
   const now = Date.now();
-  if (now - lastRunAt < TRANSFER_LOOP_MS) return 0;
+  if (!force && now - lastRunAt < TRANSFER_LOOP_MS) return 0;
 
   const cells = transferableCells(doc, settings);
   if (cells.length === 0) {
-    lastRunAt = now;
+    if (!force) lastRunAt = now;
     return 0;
   }
 
@@ -79,7 +95,9 @@ export async function runAutoTransfer(settings: Settings, doc: Document): Promis
     transferring = false;
   }
   if (moved > 0) {
-    console.info(`[BaiakIdle Helper] auto transfer: ${moved} item(s) → backpack`);
+    console.info(
+      `[BaiakIdle Helper] auto transfer: ${moved} item(s) → backpack${force ? " (pre-sell)" : ""}`
+    );
   }
   return moved;
 }

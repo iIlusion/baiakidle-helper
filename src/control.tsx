@@ -262,7 +262,7 @@ function ControlMenu(): React.JSX.Element {
                 <SettingRow
                   id="baiak-auto-sell"
                   title="Auto Sell"
-                  description="Vende tudo quando o Loot Pouch atingir a % configurada."
+                  description="Vende quando a Loot Pouch atingir a %. Se Auto Transfer estiver ON, move raridades marcadas antes do sell all."
                   checked={value.autoSell}
                   onCheckedChange={checked => change("autoSell", checked)}
                 />
@@ -404,7 +404,7 @@ function ControlMenu(): React.JSX.Element {
                     compact
                     disabled={!value.autoHunt}
                     title="Treino ↔ Hunt por stamina"
-                    description="Auto Hunt fica ON. Use dois limiares (minutos totais da barra)."
+                    description="Auto Hunt fica ON. Chega no Treino e então esvazia a Loot Pouch (transfer → sell, espera cooldown) p/ liberar glooth/potions."
                     checked={value.autoHuntTreinoOnLowStamina}
                     onCheckedChange={checked => change("autoHuntTreinoOnLowStamina", checked)}
                   />
@@ -419,6 +419,7 @@ function ControlMenu(): React.JSX.Element {
                       </span>
                       <span className="baiak-setting-description">
                         Cidade ou hunt: stamina ≤ este valor (min) → Treino online.
+                        Default 378 min (15% de 42h): abaixo de 15% a hunt dá 0.5× XP e gold.
                       </span>
                     </label>
                     <input
