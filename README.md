@@ -9,10 +9,35 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 ## Recursos
 
-- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão 90%).
-- **Open All Glooth Bag:** abre todas as Glooth Bags quando existe espaço disponível e a venda não está em cooldown.
-- **Painel nativo:** botão dentro da barra de abas do jogo, com preferências salvas no navegador.
-- **MCP opcional:** uma aba de desenvolvimento explica como conectar o jogo ao Codex sem tornar a bridge necessária para a automação.
+### Loot & inventário
+
+- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão **90%**).
+- **Open All Glooth Bag:** abre todas as Glooth Bags quando existe espaço e a venda não está em cooldown.
+- **Auto Sell Supply Potions:** move potions da Supply Pouch para a Loot Pouch e vende (`sell all`). Filtros opcionais:
+  - só no Treino online;
+  - só sem Glooth Bag no backpack;
+  - só com Loot Pouch vazia.
+- **Auto Transfer:** move itens da Loot Pouch para o Backpack por raridade (Rare / Epic / Legendary / Mythical).
+
+### Hunt & stamina
+
+- **Auto Hunt:** na cidade, entra na hunt escolhida no catálogo (pacote de stage + fallback DOM).
+- **Treino ↔ Hunt por stamina:** com Auto Hunt ligado, roteia automaticamente:
+  - stamina ≤ limiar (padrão **1h**) → vai ao Treino online (cidade ou hunt);
+  - stamina ≥ limiar (padrão **42h**, máx. 42h / 2520 min) → volta à hunt alvo.
+
+### Sessão, market e desempenho
+
+- **Auto Reconnect:** homepage → `/jogar`, overlay de queda e manutenção; multi-conta opcional; intervalo configurável.
+- **Auto Market Announce:** compartilha cada anúncio ativo no Market (`aucshare`) com intervalo por listing (sem abrir o modal).
+- **Modo leve (sem VFX):** bloqueia pacotes `fx` antes do Pixi (magias, projéteis e efeitos) para reduzir freeze em combate.
+
+### Interface
+
+- **Painel nativo:** botão **Helper** na barra de abas do jogo; preferências salvas no navegador (`localStorage`).
+- **MCP opcional:** na build de desenvolvimento, uma aba explica como conectar o jogo ao Codex; a bridge **não** é necessária para a automação.
+
+Por padrão, **Auto Sell** e **Open All Glooth Bag** começam ligados. As demais opções ficam desligadas até você ativá-las no painel.
 
 ## Instalação
 
@@ -22,7 +47,7 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 4. Abra ou recarregue `https://baiakidle.com/jogar/`.
 5. Use a nova aba **Helper** na barra superior do jogo.
 
-As duas automações começam habilitadas. O estado de cada opção é salvo em `localStorage` e pode ser alterado a qualquer momento no painel.
+O estado de cada opção é salvo em `localStorage` e pode ser alterado a qualquer momento no painel.
 
 ### Atualizações automáticas
 
@@ -71,32 +96,50 @@ Comandos disponíveis:
 npm run dev        # build em watch mode + servidor local na porta 8946
 npm run build      # gera os userscripts de produção e desenvolvimento
 npm run typecheck  # valida o TypeScript sem gerar arquivos
+npm run test       # checagens leves (ex.: catálogo / rates)
 ```
 
 ## Desenvolvimento com MCP
 
 O Helper funciona sozinho. Para analisar DOM, fetch/XHR e pacotes WebSocket com o Codex, use o projeto separado [baiakidle-mcp](https://github.com/iIlusion/baiakidle-mcp).
 
-A aba **Desenvolvimento** dentro do painel também mostra o estado da bridge e um exemplo de configuração do Codex. Essa separação mantém a extensão principal pequena e evita capturar tráfego quando as ferramentas de desenvolvimento não estão sendo usadas.
+A aba **Desenvolvimento** (build dev) também mostra o estado da bridge e um exemplo de configuração do Codex. Essa separação mantém a extensão principal pequena e evita capturar tráfego quando as ferramentas de desenvolvimento não estão sendo usadas.
 
 ## Estrutura
 
 ```text
 src/
-  control.tsx            painel React e automações
-  control.css            aparência integrada ao jogo
-  socket.ts              transporte mínimo para os comandos do Helper
-  socket-role.ts         identificação do WebSocket de gameplay
+  control.tsx              painel React e wiring das opções
+  control.css              aparência integrada ao jogo
+  analyzers.ts             melhorias de analyzers / loot gold
+  packets.ts               payloads base64 (sell, open, supplymove, …)
+  rate.ts                  parsing de rates / gold de venda
+  socket.ts                transporte WebSocket do Helper
+  socket-role.ts           identificação do socket de gameplay
+  ws-filter.ts             filtro de pacotes (modo leve / VFX)
+  automation/
+    settings.ts            load/save de preferências
+    scheduler.ts           tick unificado (hunt → transfer → sell → …)
+    hunt.ts                auto hunt + rota treino/stamina
+    transfer.ts            auto transfer por raridade
+    reconnect.ts           auto reconnect
+    market-announce.ts     auto market announce
+    state.ts               leitura de inventário / stamina / mundo
+  data/
+    hunts.ts               catálogo de hunts
+    hunt-catalog.json
   components/ui/switch.tsx
 scripts/
-  dev.mjs                servidor local e build incremental
+  dev.mjs
   add-userscript-banner.mjs
-dist/                    userscripts locais, publicados apenas nos releases
+  check-rates.mjs
+dist/                      userscripts locais, publicados apenas nos releases
+docs/                      notas locais de reverse (ignorado no Git)
 ```
 
 ## Privacidade e uso
 
-O Helper roda apenas em `https://baiakidle.com/jogar/`. Ele não envia telemetria nem depende de um servidor externo; as preferências ficam no próprio navegador. Os comandos automatizados usam a conexão já aberta pela página.
+O Helper roda em `https://baiakidle.com/*` (match do userscript). Ele não envia telemetria nem depende de um servidor externo; as preferências ficam no próprio navegador. Os comandos automatizados usam a conexão já aberta pela página.
 
 Use somente na sua própria sessão e verifique as regras do jogo. Este é um projeto independente, sem vínculo oficial com BaiakIdle.
 
