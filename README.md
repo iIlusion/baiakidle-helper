@@ -9,7 +9,7 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 ## Recursos
 
-- **Auto Sell:** envia `sell all` quando o Loot Pouch chega ao limite.
+- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão 90%).
 - **Open All Glooth Bag:** abre todas as Glooth Bags quando existe espaço disponível e a venda não está em cooldown.
 - **Painel nativo:** botão dentro da barra de abas do jogo, com preferências salvas no navegador.
 - **MCP opcional:** uma aba de desenvolvimento explica como conectar o jogo ao Codex sem tornar a bridge necessária para a automação.

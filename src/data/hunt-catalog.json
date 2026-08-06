@@ -1,0 +1,397 @@
+[
+  {
+    "id": "troll-cave",
+    "name": "Troll Cave",
+    "minLevel": 1
+  },
+  {
+    "id": "elf-lair",
+    "name": "Elf",
+    "minLevel": 8
+  },
+  {
+    "id": "amazon-camp",
+    "name": "Amazon",
+    "minLevel": 9
+  },
+  {
+    "id": "kongra",
+    "name": "Kongra",
+    "minLevel": 10
+  },
+  {
+    "id": "minotaur",
+    "name": "Minotaur",
+    "minLevel": 10
+  },
+  {
+    "id": "cyclopolis",
+    "name": "Cyclopolis",
+    "minLevel": 15
+  },
+  {
+    "id": "corym-cave",
+    "name": "Corym Skirmisher",
+    "minLevel": 30
+  },
+  {
+    "id": "refiner-cave",
+    "name": "Stone Refiner",
+    "minLevel": 30
+  },
+  {
+    "id": "crawler-cave",
+    "name": "Crawler",
+    "minLevel": 50
+  },
+  {
+    "id": "giant-spider",
+    "name": "Giant Spider",
+    "minLevel": 50
+  },
+  {
+    "id": "glooth-cave",
+    "name": "Glooth Bandit",
+    "minLevel": 60
+  },
+  {
+    "id": "hero-cave",
+    "name": "Hero",
+    "minLevel": 60
+  },
+  {
+    "id": "cult-cave",
+    "name": "Cult",
+    "minLevel": 80
+  },
+  {
+    "id": "dragon-lair",
+    "name": "Dragon Lair",
+    "minLevel": 80
+  },
+  {
+    "id": "werebadge-cave",
+    "name": "Werebadge",
+    "minLevel": 90
+  },
+  {
+    "id": "behemoth-cave",
+    "name": "Behemoth",
+    "minLevel": 100
+  },
+  {
+    "id": "hydra-cave",
+    "name": "Hydra",
+    "minLevel": 100
+  },
+  {
+    "id": "orclops-cave",
+    "name": "Orclops",
+    "minLevel": 100
+  },
+  {
+    "id": "crumbling-cave",
+    "name": "Crumbling Caverns",
+    "minLevel": 130
+  },
+  {
+    "id": "grimreaper-cave",
+    "name": "Grim Reaper",
+    "minLevel": 130
+  },
+  {
+    "id": "wyrm-cave",
+    "name": "Wyrm",
+    "minLevel": 130
+  },
+  {
+    "id": "candia-cave",
+    "name": "Candia",
+    "minLevel": 140
+  },
+  {
+    "id": "werehyaena-cave",
+    "name": "Werehyaena",
+    "minLevel": 140
+  },
+  {
+    "id": "asura-lair",
+    "name": "Asuras",
+    "minLevel": 150
+  },
+  {
+    "id": "darktorturer-cave",
+    "name": "Dark Torturer",
+    "minLevel": 150
+  },
+  {
+    "id": "wereliones-cave",
+    "name": "Wereliones",
+    "minLevel": 170
+  },
+  {
+    "id": "draken-lair",
+    "name": "Draken",
+    "minLevel": 180
+  },
+  {
+    "id": "mitmah-cave",
+    "name": "Mitmah Seer",
+    "minLevel": 180
+  },
+  {
+    "id": "cobra-cave",
+    "name": "Cobras",
+    "minLevel": 190
+  },
+  {
+    "id": "cliffstrider-cave",
+    "name": "Cliff Strider",
+    "minLevel": 200
+  },
+  {
+    "id": "dreadintruder-cave",
+    "name": "Dread Intruder",
+    "minLevel": 200
+  },
+  {
+    "id": "hideous-fungus",
+    "name": "Hideous Fungus",
+    "minLevel": 200
+  },
+  {
+    "id": "magmacrawler-cave",
+    "name": "Magma Crawler",
+    "minLevel": 200
+  },
+  {
+    "id": "undeadragon-lair",
+    "name": "Undead Dragon",
+    "minLevel": 200
+  },
+  {
+    "id": "falcon",
+    "name": "Falcon",
+    "minLevel": 210
+  },
+  {
+    "id": "vexclaw-lair",
+    "name": "Vexclaw",
+    "minLevel": 210
+  },
+  {
+    "id": "grimeleech-cave",
+    "name": "Grimeleech",
+    "minLevel": 220
+  },
+  {
+    "id": "choking-cave",
+    "name": "Choking Fear",
+    "minLevel": 240
+  },
+  {
+    "id": "crazed-cave",
+    "name": "Crazed Elf's",
+    "minLevel": 240
+  },
+  {
+    "id": "catacomb-cave",
+    "name": "Catacomb",
+    "minLevel": 250
+  },
+  {
+    "id": "guzzlemaw-cave",
+    "name": "Guzzlemaw",
+    "minLevel": 250
+  },
+  {
+    "id": "prison-cave",
+    "name": "Prison",
+    "minLevel": 250
+  },
+  {
+    "id": "raubritter-lair",
+    "name": "Raubritter",
+    "minLevel": 250
+  },
+  {
+    "id": "lionknight-cave",
+    "name": "Lion Knight",
+    "minLevel": 270
+  },
+  {
+    "id": "megadragon-cave",
+    "name": "Mega Dragon",
+    "minLevel": 290
+  },
+  {
+    "id": "freakishlostsoul-cave",
+    "name": "Freakish Lost Soul",
+    "minLevel": 300
+  },
+  {
+    "id": "naga-lair",
+    "name": "Naga Lair",
+    "minLevel": 300
+  },
+  {
+    "id": "trueazura-cave",
+    "name": "True Azura",
+    "minLevel": 300
+  },
+  {
+    "id": "weretiger-cave",
+    "name": "Weretiger",
+    "minLevel": 330
+  },
+  {
+    "id": "werecrocodile-cave",
+    "name": "Feral Werecrocodile",
+    "minLevel": 340
+  },
+  {
+    "id": "bashmu-cave",
+    "name": "Bashmu",
+    "minLevel": 350
+  },
+  {
+    "id": "bulltaur-cave",
+    "name": "Bulltaur",
+    "minLevel": 350
+  },
+  {
+    "id": "gazer-lair",
+    "name": "Gazer",
+    "minLevel": 350
+  },
+  {
+    "id": "skeletin-cave",
+    "name": "Skeleton Elite Warrior",
+    "minLevel": 350
+  },
+  {
+    "id": "darkcarnisylvan-cave",
+    "name": "Dark Carnisylvan",
+    "minLevel": 430
+  },
+  {
+    "id": "inferniarch-lair",
+    "name": "Inferniarch",
+    "minLevel": 450
+  },
+  {
+    "id": "girtablilu-cave",
+    "name": "girtablilu warrior",
+    "minLevel": 460
+  },
+  {
+    "id": "livrariaearth-cave",
+    "name": "Livraria EARTH",
+    "minLevel": 500
+  },
+  {
+    "id": "livraria-cave",
+    "name": "Livraria ENERGY",
+    "minLevel": 500
+  },
+  {
+    "id": "livrariafire-cave",
+    "name": "Livraria FIRE",
+    "minLevel": 500
+  },
+  {
+    "id": "livrariaice-cave",
+    "name": "Livraria ICE",
+    "minLevel": 500
+  },
+  {
+    "id": "norcferatu-cave",
+    "name": "Norcferatu Nightweaver",
+    "minLevel": 600
+  },
+  {
+    "id": "quararaider-lair",
+    "name": "Quara Raider",
+    "minLevel": 600
+  },
+  {
+    "id": "afflictedstrider-cave",
+    "name": "Afflicted Strider",
+    "minLevel": 610
+  },
+  {
+    "id": "lavafungos-cave",
+    "name": "Lavafungos",
+    "minLevel": 610
+  },
+  {
+    "id": "varnisheddiremaw-cave",
+    "name": "Varnished Diremaw",
+    "minLevel": 610
+  },
+  {
+    "id": "gnomprona2-cave",
+    "name": "Gnomprona 2",
+    "minLevel": 1070
+  },
+  {
+    "id": "crypt-cave",
+    "name": "Crypt Construct",
+    "minLevel": 1090
+  },
+  {
+    "id": "rottengolem-cave",
+    "name": "Rotten Golem",
+    "minLevel": 1100
+  },
+  {
+    "id": "cloakofterror-lair",
+    "name": "Cloak Of Terror",
+    "minLevel": 1150
+  },
+  {
+    "id": "gnomprona1-cave",
+    "name": "Gnomprona 1",
+    "minLevel": 1160
+  },
+  {
+    "id": "gnomprona3-cave",
+    "name": "Gnomprona 3",
+    "minLevel": 1190
+  },
+  {
+    "id": "infernalmdemon-cave",
+    "name": "Infernal Demon",
+    "minLevel": 1230
+  },
+  {
+    "id": "bonyseadevil-cave",
+    "name": "Bony Sea Devil",
+    "minLevel": 1590
+  },
+  {
+    "id": "darkthais-cave",
+    "name": "Dark Thais",
+    "minLevel": 1800
+  },
+  {
+    "id": "bloatedmanmaggot-cave",
+    "name": "bloated man-maggot",
+    "minLevel": 2090
+  },
+  {
+    "id": "maggot-cave",
+    "name": "Rotten man-maggot",
+    "minLevel": 2610
+  },
+  {
+    "id": "draklightsource-cave",
+    "name": "Darklight Source",
+    "minLevel": 2690
+  },
+  {
+    "id": "wanderingpillar-cave",
+    "name": "Wandering Pillar",
+    "minLevel": 2850
+  }
+]

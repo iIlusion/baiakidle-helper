@@ -2,86 +2,54 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Switch } from "./components/ui/switch";
-import { gameplayConnected, sendRawPacket } from "./socket";
+import { gameplayConnected, setReduceVfx } from "./socket";
+import { startAnalyserEnhancements } from "./analyzers";
+import {
+  clampAutoSellThresholdPct,
+  clampMarketAnnounceIntervalMs,
+  clampReconnectIntervalMs,
+  clampStaminaMinutes,
+  formatStaminaMinutes,
+  STAMINA_MAX_MINUTES,
+  loadSettings,
+  saveSettings,
+  type Settings,
+  type TransferTiers
+} from "./automation/settings";
+import { startMarketAnnounce } from "./automation/market-announce";
+import { startPerfProbe } from "./automation/perf-probe";
+import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
+import { startScheduler } from "./automation/scheduler";
+import { startTeleportProbe } from "./automation/probe";
+import { HUNTS, huntById } from "./data/hunts";
 import styles from "./control.css?inline";
 
 declare const unsafeWindow: Window & typeof globalThis;
+declare const __BAIAKIDLE_DEV__: boolean;
 
 const page = unsafeWindow;
-const STORAGE_KEY = "baiakidle-helper-v1";
-const SELL_ALL_BASE64 = "DadzZWxsYWxs1HJAkalwcm90ZWN0ZWTC";
-const OPEN_ALL_GLOOTH_BAGS_BASE64 = "Dad1c2VpdGVt1HJAk6RuYW1lpGZyb22jYWxsqmdsb290aCBiYWeoYmFja3BhY2vD";
 const MCP_REPOSITORY = "https://github.com/iIlusion/baiakidle-mcp";
 const DISCORD_SUPPORT = "https://discord.gg/Hy7HqcAgQG";
+const SETTINGS_EVENT = "baiakidle-helper-settings";
 
-type Settings = { autoSell: boolean; autoOpenAll: boolean };
 type View = "automation" | "development";
 type McpBridgeApi = { version: 1; gameplayConnected: () => boolean };
 type BridgeWindow = typeof page & { __BAIAKIDLE_MCP_BRIDGE__?: McpBridgeApi };
 
-const defaults: Settings = { autoSell: true, autoOpenAll: true };
-let settings = loadSettings();
-
-function loadSettings(): Settings {
-  try {
-    return { ...defaults, ...JSON.parse(page.localStorage.getItem(STORAGE_KEY) ?? "{}") };
-  } catch {
-    return defaults;
-  }
-}
-
-function saveSettings(next: Settings): void {
-  settings = next;
-  page.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-}
+let settings = loadSettings(
+  page.localStorage,
+  new Set(HUNTS.map(hunt => hunt.id))
+);
 
 function mcpBridge(): McpBridgeApi | undefined {
   return (page as BridgeWindow).__BAIAKIDLE_MCP_BRIDGE__;
 }
 
-function inventory(): {
-  current: number;
-  capacity: number;
-  full: boolean;
-  cooldown: boolean;
-  hasGloothBag: boolean;
-} | undefined {
-  const match = /^\s*(\d+)\s*\/\s*(\d+)/.exec(
-    page.document.getElementById("inv-count")?.textContent ?? ""
-  );
-  if (!match) return;
-
-  const current = Number(match[1]);
-  const capacity = Number(match[2]);
-  const sellButton = page.document.getElementById("sell-all") as HTMLButtonElement | null;
-  return {
-    current,
-    capacity,
-    full: capacity > 0 && current >= capacity,
-    cooldown: Boolean(sellButton?.disabled || sellButton?.classList.contains("cd")),
-    hasGloothBag: Boolean(page.document.querySelector('#backpack-grid img[alt="glooth bag"]'))
-  };
-}
-
-function startAutomation(): void {
-  let sellLatched = false;
-  let openLatched = false;
-
-  page.setInterval(() => {
-    const state = inventory();
-    if (!state) return;
-
-    if (!settings.autoSell || !state.full) sellLatched = false;
-    if (settings.autoSell && state.full && !state.cooldown && !sellLatched) {
-      sellLatched = sendRawPacket(SELL_ALL_BASE64);
-    }
-
-    if (!settings.autoOpenAll || !state.hasGloothBag || state.full || state.cooldown) {
-      openLatched = false;
-    } else if (!openLatched) {
-      openLatched = sendRawPacket(OPEN_ALL_GLOOTH_BAGS_BASE64);
-    }
-  }, 250);
+function persist(next: Settings): void {
+  settings = next;
+  saveSettings(page.localStorage, next);
+  setReduceVfx(next.reduceVfx);
+  page.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: next }));
 }
 
 function BotIcon(): React.JSX.Element {
@@ -133,9 +101,18 @@ function ControlMenu(): React.JSX.Element {
   }, []);
 
   React.useEffect(() => {
+    const onSettings = (event: Event) => {
+      const detail = (event as CustomEvent<Settings>).detail;
+      if (detail) setValue(detail);
+    };
+    page.addEventListener(SETTINGS_EVENT, onSettings as EventListener);
+    return () => page.removeEventListener(SETTINGS_EVENT, onSettings as EventListener);
+  }, []);
+
+  React.useEffect(() => {
     const refresh = () => {
       setGameConnected(gameplayConnected());
-      setBridgeConnected(Boolean(mcpBridge()));
+      if (__BAIAKIDLE_DEV__) setBridgeConnected(Boolean(mcpBridge()));
     };
     refresh();
     const timer = page.setInterval(refresh, 750);
@@ -165,8 +142,75 @@ function ControlMenu(): React.JSX.Element {
   const change = (key: keyof Settings, checked: boolean) => {
     const next = { ...value, [key]: checked };
     setValue(next);
-    saveSettings(next);
+    persist(next);
   };
+
+  const changeTier = (key: keyof TransferTiers, checked: boolean) => {
+    const next: Settings = {
+      ...value,
+      transferTiers: { ...value.transferTiers, [key]: checked }
+    };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeHuntId = (huntId: string) => {
+    const next: Settings = {
+      ...value,
+      selectedHuntId: huntId || null
+    };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeAutoSellThresholdPct = (raw: string) => {
+    const next: Settings = {
+      ...value,
+      autoSellThresholdPct: clampAutoSellThresholdPct(raw)
+    };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeStaminaToTreino = (raw: string) => {
+    const next: Settings = {
+      ...value,
+      autoHuntStaminaToTreinoMinutes: clampStaminaMinutes(raw)
+    };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeStaminaToHunt = (raw: string) => {
+    const next: Settings = {
+      ...value,
+      autoHuntStaminaToHuntMinutes: clampStaminaMinutes(raw)
+    };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeReconnectIntervalSec = (raw: string) => {
+    const sec = Number(raw);
+    const ms = clampReconnectIntervalMs(
+      Number.isFinite(sec) ? sec * 1_000 : value.reconnectIntervalMs
+    );
+    const next: Settings = { ...value, reconnectIntervalMs: ms };
+    setValue(next);
+    persist(next);
+  };
+
+  const changeMarketAnnounceIntervalMin = (raw: string) => {
+    const min = Number(raw);
+    const ms = clampMarketAnnounceIntervalMs(
+      Number.isFinite(min) ? min * 60_000 : value.autoMarketAnnounceIntervalMs
+    );
+    const next: Settings = { ...value, autoMarketAnnounceIntervalMs: ms };
+    setValue(next);
+    persist(next);
+  };
+
+  const selectedHunt = huntById(value.selectedHuntId);
 
   return (
     <>
@@ -201,31 +245,402 @@ function ControlMenu(): React.JSX.Element {
             </span>
           </header>
 
-          <nav className="baiak-control-nav" aria-label="Seções do Helper">
-            <button type="button" className={view === "automation" ? "active" : ""} onClick={() => setView("automation")}>
-              Automação
-            </button>
-            <button type="button" className={view === "development" ? "active" : ""} onClick={() => setView("development")}>
-              Desenvolvimento
-            </button>
-          </nav>
+          {__BAIAKIDLE_DEV__ && (
+            <nav className="baiak-control-nav" aria-label="Seções do Helper">
+              <button type="button" className={view === "automation" ? "active" : ""} onClick={() => setView("automation")}>
+                Automação
+              </button>
+              <button type="button" className={view === "development" ? "active" : ""} onClick={() => setView("development")}>
+                Desenvolvimento
+              </button>
+            </nav>
+          )}
 
-          {view === "automation" ? (
+          {!__BAIAKIDLE_DEV__ || view === "automation" ? (
             <div className="baiak-control-body">
-              <SettingRow
-                id="baiak-auto-sell"
-                title="Auto Sell"
-                description="Vende tudo quando o Loot Pouch atingir o limite."
-                checked={value.autoSell}
-                onCheckedChange={checked => change("autoSell", checked)}
-              />
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-sell"
+                  title="Auto Sell"
+                  description="Vende tudo quando o Loot Pouch atingir a % configurada."
+                  checked={value.autoSell}
+                  onCheckedChange={checked => change("autoSell", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoSell ? "" : " disabled"}`}
+                  aria-label="Opções do Auto Sell"
+                >
+                  <div
+                    className={`baiak-setting-row compact baiak-slider-row${
+                      value.autoSell ? "" : " is-disabled"
+                    }`}
+                  >
+                    <label htmlFor="baiak-auto-sell-threshold">
+                      <span className="baiak-setting-title">
+                        Vender com {value.autoSellThresholdPct}% cheia
+                      </span>
+                      <span className="baiak-setting-description">
+                        {value.autoSellThresholdPct >= 100
+                          ? "Só vende com o Loot Pouch lotado."
+                          : `Vende quando a pouch estiver com ≥ ${value.autoSellThresholdPct}% dos slots ocupados.`}
+                      </span>
+                    </label>
+                    <div className="baiak-slider-wrap">
+                      <input
+                        id="baiak-auto-sell-threshold"
+                        className="baiak-slider"
+                        type="range"
+                        min={1}
+                        max={100}
+                        step={1}
+                        disabled={!value.autoSell}
+                        value={value.autoSellThresholdPct}
+                        onChange={event => changeAutoSellThresholdPct(event.target.value)}
+                        aria-label="Porcentagem da Loot Pouch para auto sell"
+                        aria-valuemin={1}
+                        aria-valuemax={100}
+                        aria-valuenow={value.autoSellThresholdPct}
+                        style={
+                          {
+                            "--baiak-slider-pct": `${value.autoSellThresholdPct}%`
+                          } as React.CSSProperties
+                        }
+                      />
+                      <span className="baiak-slider-value" aria-hidden="true">
+                        {value.autoSellThresholdPct}%
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <SettingRow
                 id="baiak-auto-open-all"
                 title="Open All Glooth Bag"
-                description="Abre todas quando houver espaço e a venda estiver disponível."
+                description="Abre todas quando houver espaço e a venda não estiver em cooldown."
                 checked={value.autoOpenAll}
                 onCheckedChange={checked => change("autoOpenAll", checked)}
               />
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-sell-supply-potions"
+                  title="Auto Sell Supply Potions"
+                  description="Move potions da Supply Pouch p/ a Loot Pouch e vende (sell all)."
+                  checked={value.autoSellSupplyPotions}
+                  onCheckedChange={checked => change("autoSellSupplyPotions", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoSellSupplyPotions ? "" : " disabled"}`}
+                  aria-label="Condições do Auto Sell Supply Potions"
+                >
+                  <SettingRow
+                    id="baiak-supply-only-treino"
+                    compact
+                    disabled={!value.autoSellSupplyPotions}
+                    title="Só no Treino online"
+                    description="Ativa apenas no mundo Treino online."
+                    checked={value.supplyPotionsOnlyTreino}
+                    onCheckedChange={checked => change("supplyPotionsOnlyTreino", checked)}
+                  />
+                  <SettingRow
+                    id="baiak-supply-only-no-glooth"
+                    compact
+                    disabled={!value.autoSellSupplyPotions}
+                    title="Só sem Glooth Bag"
+                    description="Só se não houver glooth bag no backpack para abrir."
+                    checked={value.supplyPotionsOnlyNoGlooth}
+                    onCheckedChange={checked => change("supplyPotionsOnlyNoGlooth", checked)}
+                  />
+                  <SettingRow
+                    id="baiak-supply-only-empty-loot"
+                    compact
+                    disabled={!value.autoSellSupplyPotions}
+                    title="Só com Loot Pouch vazia"
+                    description="Só se a quantidade de itens na Loot Pouch for 0."
+                    checked={value.supplyPotionsOnlyEmptyLoot}
+                    onCheckedChange={checked => change("supplyPotionsOnlyEmptyLoot", checked)}
+                  />
+                </div>
+              </div>
+
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-hunt"
+                  title="Auto Hunt"
+                  description="Na cidade, entra na hunt escolhida (WS stage + fallback DOM)."
+                  checked={value.autoHunt}
+                  onCheckedChange={checked => change("autoHunt", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoHunt ? "" : " disabled"}`}
+                  aria-label="Opções do Auto Hunt"
+                >
+                  <div className={`baiak-setting-row compact${value.autoHunt ? "" : " is-disabled"}`}>
+                    <label htmlFor="baiak-hunt-select">
+                      <span className="baiak-setting-title">Hunt alvo</span>
+                      <span className="baiak-setting-description">
+                        {selectedHunt
+                          ? `id: ${selectedHunt.id} · min lvl ${selectedHunt.minLevel}`
+                          : "Selecione a fase (huntId nativo)."}
+                      </span>
+                    </label>
+                    <select
+                      id="baiak-hunt-select"
+                      className="baiak-select"
+                      disabled={!value.autoHunt}
+                      value={value.selectedHuntId ?? ""}
+                      onChange={event => changeHuntId(event.target.value)}
+                      aria-label="Selecionar hunt"
+                    >
+                      <option value="">— escolher —</option>
+                      {HUNTS.map(hunt => (
+                        <option key={hunt.id} value={hunt.id}>
+                          {hunt.name} (lvl {hunt.minLevel})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <SettingRow
+                    id="baiak-hunt-low-stamina-treino"
+                    compact
+                    disabled={!value.autoHunt}
+                    title="Treino ↔ Hunt por stamina"
+                    description="Auto Hunt fica ON. Use dois limiares (minutos totais da barra)."
+                    checked={value.autoHuntTreinoOnLowStamina}
+                    onCheckedChange={checked => change("autoHuntTreinoOnLowStamina", checked)}
+                  />
+                  <div
+                    className={`baiak-setting-row compact${
+                      value.autoHunt && value.autoHuntTreinoOnLowStamina ? "" : " is-disabled"
+                    }`}
+                  >
+                    <label htmlFor="baiak-stamina-to-treino">
+                      <span className="baiak-setting-title">
+                        Ir ao Treino se ≤ {formatStaminaMinutes(value.autoHuntStaminaToTreinoMinutes)}
+                      </span>
+                      <span className="baiak-setting-description">
+                        Cidade ou hunt: stamina ≤ este valor (min) → Treino online.
+                      </span>
+                    </label>
+                    <input
+                      id="baiak-stamina-to-treino"
+                      className="baiak-number"
+                      type="number"
+                      min={1}
+                      max={STAMINA_MAX_MINUTES}
+                      step={1}
+                      disabled={!value.autoHunt || !value.autoHuntTreinoOnLowStamina}
+                      value={value.autoHuntStaminaToTreinoMinutes}
+                      onChange={event => changeStaminaToTreino(event.target.value)}
+                      title="Minutos totais. Ex.: 60 = 1h, 2520 = 42h (máx)"
+                      aria-label="Stamina máxima em minutos para ir ao Treino"
+                    />
+                  </div>
+                  <div
+                    className={`baiak-setting-row compact${
+                      value.autoHunt && value.autoHuntTreinoOnLowStamina ? "" : " is-disabled"
+                    }`}
+                  >
+                    <label htmlFor="baiak-stamina-to-hunt">
+                      <span className="baiak-setting-title">
+                        Voltar à Hunt se ≥ {formatStaminaMinutes(value.autoHuntStaminaToHuntMinutes)}
+                      </span>
+                      <span className="baiak-setting-description">
+                        No Treino: stamina ≥ este valor (min) → hunt alvo.
+                      </span>
+                    </label>
+                    <input
+                      id="baiak-stamina-to-hunt"
+                      className="baiak-number"
+                      type="number"
+                      min={1}
+                      max={STAMINA_MAX_MINUTES}
+                      step={1}
+                      disabled={!value.autoHunt || !value.autoHuntTreinoOnLowStamina}
+                      value={value.autoHuntStaminaToHuntMinutes}
+                      onChange={event => changeStaminaToHunt(event.target.value)}
+                      title="Minutos totais. Ex.: 120 = 2h, 2520 = 42h (máx)"
+                      aria-label="Stamina mínima em minutos para voltar à Hunt"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-transfer"
+                  title="Auto Transfer"
+                  description="Move itens da Loot Pouch p/ o Backpack pelas raridades marcadas (bagmove / Shift+click)."
+                  checked={value.autoTransfer}
+                  onCheckedChange={checked => change("autoTransfer", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoTransfer ? "" : " disabled"}`}
+                  aria-label="Raridades do Auto Transfer"
+                >
+                  <SettingRow
+                    id="baiak-transfer-rare"
+                    compact
+                    disabled={!value.autoTransfer}
+                    title="Rare"
+                    description="data-tier 2"
+                    checked={value.transferTiers.rare}
+                    onCheckedChange={checked => changeTier("rare", checked)}
+                    accent="rare"
+                  />
+                  <SettingRow
+                    id="baiak-transfer-epic"
+                    compact
+                    disabled={!value.autoTransfer}
+                    title="Epic"
+                    description="data-tier 3"
+                    checked={value.transferTiers.epic}
+                    onCheckedChange={checked => changeTier("epic", checked)}
+                    accent="epic"
+                  />
+                  <SettingRow
+                    id="baiak-transfer-legendary"
+                    compact
+                    disabled={!value.autoTransfer}
+                    title="Legendary"
+                    description="data-tier 4"
+                    checked={value.transferTiers.legendary}
+                    onCheckedChange={checked => changeTier("legendary", checked)}
+                    accent="legendary"
+                  />
+                  <SettingRow
+                    id="baiak-transfer-mythical"
+                    compact
+                    disabled={!value.autoTransfer}
+                    title="Mythical"
+                    description="data-tier 5"
+                    checked={value.transferTiers.mythical}
+                    onCheckedChange={checked => changeTier("mythical", checked)}
+                    accent="mythical"
+                  />
+                </div>
+              </div>
+
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-reduce-vfx"
+                  title="Modo leve (sem VFX)"
+                  description="Bloqueia pacotes fx antes do Pixi (magias/projéteis/efeitos). Menos freeze em combate."
+                  checked={value.reduceVfx}
+                  onCheckedChange={checked => change("reduceVfx", checked)}
+                />
+              </div>
+
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-market-announce"
+                  title="Auto Market Announce"
+                  description="Envia aucshare (Compartilhar no Market) por anúncio ativo, sem abrir o modal."
+                  checked={value.autoMarketAnnounce}
+                  onCheckedChange={checked => change("autoMarketAnnounce", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoMarketAnnounce ? "" : " disabled"}`}
+                  aria-label="Opções do Auto Market Announce"
+                >
+                  <div
+                    className={`baiak-setting-row compact${
+                      value.autoMarketAnnounce ? "" : " is-disabled"
+                    }`}
+                  >
+                    <label htmlFor="baiak-market-announce-interval">
+                      <span className="baiak-setting-title">Intervalo por anúncio (min)</span>
+                      <span className="baiak-setting-description">
+                        Cada listing tem o próprio timer. Entre shares o jogo pede ~2 min no canal Market.
+                      </span>
+                    </label>
+                    <input
+                      id="baiak-market-announce-interval"
+                      className="baiak-number"
+                      type="number"
+                      min={2}
+                      max={360}
+                      step={1}
+                      disabled={!value.autoMarketAnnounce}
+                      value={Math.round(value.autoMarketAnnounceIntervalMs / 60_000)}
+                      onChange={event => changeMarketAnnounceIntervalMin(event.target.value)}
+                      aria-label="Intervalo em minutos por anúncio"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-reconnect"
+                  title="Auto Reconnect"
+                  description="Homepage → /jogar, overlay de queda, manutenção. Multi-conta opcional."
+                  checked={value.autoReconnect}
+                  onCheckedChange={checked => change("autoReconnect", checked)}
+                />
+                <div
+                  className={`baiak-setting-suboptions${value.autoReconnect ? "" : " disabled"}`}
+                  aria-label="Opções do Auto Reconnect"
+                >
+                  <div
+                    className={`baiak-setting-row compact${value.autoReconnect ? "" : " is-disabled"}`}
+                  >
+                    <label htmlFor="baiak-reconnect-interval">
+                      <span className="baiak-setting-title">Intervalo (s)</span>
+                      <span className="baiak-setting-description">
+                        Mínimo entre tentativas. Manutenção/multi usam espera maior.
+                      </span>
+                    </label>
+                    <input
+                      id="baiak-reconnect-interval"
+                      className="baiak-number"
+                      type="number"
+                      min={5}
+                      max={600}
+                      step={1}
+                      disabled={!value.autoReconnect}
+                      value={Math.round(value.reconnectIntervalMs / 1_000)}
+                      onChange={event => changeReconnectIntervalSec(event.target.value)}
+                      aria-label="Intervalo de reconexão em segundos"
+                    />
+                  </div>
+                  <SettingRow
+                    id="baiak-reconnect-homepage"
+                    compact
+                    disabled={!value.autoReconnect}
+                    title="Homepage"
+                    description="Se cair na home (baiakidle.com/), abre /jogar/."
+                    checked={value.reconnectHomepage}
+                    onCheckedChange={checked => change("reconnectHomepage", checked)}
+                  />
+                  <SettingRow
+                    id="baiak-reconnect-maintenance"
+                    compact
+                    disabled={!value.autoReconnect}
+                    title="Manutenção"
+                    description="Detecta texto de manutenção e tenta de novo (espera ≥ 60s)."
+                    checked={value.reconnectMaintenance}
+                    onCheckedChange={checked => change("reconnectMaintenance", checked)}
+                  />
+                  <SettingRow
+                    id="baiak-reconnect-disconnected"
+                    compact
+                    disabled={!value.autoReconnect}
+                    title="Desconectado"
+                    description="#conn-retry / reload se o overlay de queda aparecer ou /jogar travar."
+                    checked={value.reconnectDisconnected}
+                    onCheckedChange={checked => change("reconnectDisconnected", checked)}
+                  />
+                  <SettingRow
+                    id="baiak-reconnect-multi"
+                    compact
+                    disabled={!value.autoReconnect}
+                    title="Multi-conta / takeover"
+                    description="OFF por padrão — reload pode brigar com a outra sessão."
+                    checked={value.reconnectMultiAccount}
+                    onCheckedChange={checked => change("reconnectMultiAccount", checked)}
+                  />
+                </div>
+              </div>
             </div>
           ) : (
             <Development bridgeConnected={bridgeConnected} />
@@ -281,18 +696,24 @@ function SettingRow({
   title,
   description,
   checked,
-  onCheckedChange
+  onCheckedChange,
+  compact = false,
+  disabled = false,
+  accent
 }: {
   id: string;
   title: string;
   description: string;
   checked: boolean;
   onCheckedChange: (checked: boolean) => void;
+  compact?: boolean;
+  disabled?: boolean;
+  accent?: "rare" | "epic" | "legendary" | "mythical";
 }): React.JSX.Element {
   return (
-    <div className="baiak-setting-row">
+    <div className={`baiak-setting-row${compact ? " compact" : ""}${disabled ? " is-disabled" : ""}`}>
       <label htmlFor={id}>
-        <span className="baiak-setting-title">{title}</span>
+        <span className={`baiak-setting-title${accent ? ` rar-${accent}` : ""}`}>{title}</span>
         <span className="baiak-setting-description">{description}</span>
       </label>
       <div className="baiak-setting-control">
@@ -300,6 +721,7 @@ function SettingRow({
         <Switch
           id={id}
           checked={checked}
+          disabled={disabled}
           onCheckedChange={onCheckedChange}
           aria-label={`${title}: ${checked ? "ligado" : "desligado"}`}
         />
@@ -328,9 +750,38 @@ function mount(): boolean {
   return true;
 }
 
-startAutomation();
-if (!mount()) {
-  const timer = page.setInterval(() => {
-    if (mount()) page.clearInterval(timer);
-  }, 250);
+// Keep module settings in sync when mini-bar (or another tab) writes localStorage.
+page.addEventListener("baiakidle-helper-settings", event => {
+  const detail = (event as CustomEvent<Settings>).detail;
+  if (detail) {
+    settings = detail;
+    setReduceVfx(detail.reduceVfx);
+  }
+});
+
+setReduceVfx(settings.reduceVfx);
+
+// Reconnect runs on all matched pages (homepage, maintenance, /jogar).
+startReconnectWatcher(() => settings);
+
+// Full automation + UI only on /jogar (HUD exists there).
+if (isJogarPath()) {
+  startPerfProbe();
+  startScheduler({
+    getSettings: () => settings
+  });
+  startMarketAnnounce(() => settings);
+  startAnalyserEnhancements();
+  // Full-document MutationObserver probe is dev-only (very expensive in combat).
+  if (__BAIAKIDLE_DEV__) startTeleportProbe();
+  if (!mount()) {
+    const timer = page.setInterval(() => {
+      if (mount()) page.clearInterval(timer);
+    }, 250);
+  }
+} else {
+  console.info(
+    `[BaiakIdle Helper] reconnect-only mode (path=${page.location.pathname}) — ` +
+      `use the bottom-right mini bar or enable Auto Reconnect on /jogar`
+  );
 }

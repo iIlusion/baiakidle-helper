@@ -2,14 +2,14 @@ import { readFile, writeFile } from "node:fs/promises";
 
 const { version } = JSON.parse(await readFile("package.json", "utf8"));
 
-const common = `// @match https://baiakidle.com/jogar/
-// @match https://baiakidle.com/jogar/*
+const common = `// @match https://baiakidle.com/*
+// @match https://www.baiakidle.com/*
 // @run-at document-start`;
 const banner = `// ==UserScript==
 // @name BaiakIdle Helper
 // @namespace baiakidle-helper
 // @version ${version}
-// @description Auto Sell and Open All Glooth Bag controls for BaiakIdle.
+// @description Auto Sell, Hunt, Treino and Reconnect helper for BaiakIdle.
 // @homepageURL https://github.com/iIlusion/baiakidle-helper
 // @supportURL https://discord.gg/Hy7HqcAgQG
 // @updateURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js

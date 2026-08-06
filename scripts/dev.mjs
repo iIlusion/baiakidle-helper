@@ -2,8 +2,8 @@ import { createServer } from "node:http";
 import { readFile } from "node:fs/promises";
 import { build } from "vite";
 
-const bundle = "dist/baiakidle-helper.user.js";
-const watcher = await build({ configFile: "vite.config.ts", build: { watch: {} } });
+const bundle = "dist/baiakidle-helper.dev.js";
+const watcher = await build({ configFile: "vite.config.ts", mode: "development", build: { watch: {} } });
 const server = createServer(async (request, response) => {
   if (request.url?.split("?")[0] !== "/baiakidle-helper.user.js") {
     response.writeHead(404).end();
