@@ -28,8 +28,14 @@ Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/j
 
 ### Sessão, market e desempenho
 
-- **Auto Reconnect:** homepage → `/jogar`, overlay de queda e manutenção; multi-conta opcional; intervalo configurável.
-- **Auto Market Announce:** compartilha cada anúncio ativo no Market (`aucshare`) com intervalo por listing (sem abrir o modal).
+- **Auto Reconnect:**
+  - **Homepage:** só path exato `/` (não outras páginas `/*`) → `/jogar` após **10s**.
+  - **Manutenção:** em `/` com “Em Manutenção” → vai a `/jogar`; no modal “JOGO EM MANUTENÇÃO” faz refresh a cada **30s** e detecta se o overlay sumiu.
+  - **Limite de contas simultâneas / takeover:** detecta o overlay e tenta de novo a cada **10s**.
+  - **Pause (sessão):** mini-bar na home/site pausa o auto reconnect até retomar (sessionStorage).
+  - Queda / stuck.
+- **Auto Market Announce:** `aucshare` no chat Market; coleta IDs sozinha (Market invisível → Meus anúncios → Vitrine → fecha), **sem** Bearer/token do helper (evita SESSÃO EXPIRADA).
+- **Loot vendido (Hunt Analyzer):** modo Sessão = textos de venda (g+mg) + gold drop direto (`fx`); modo Jogo = nativo.
 - **Modo leve (sem VFX):** bloqueia pacotes `fx` antes do Pixi (magias, projéteis e efeitos) para reduzir freeze em combate.
 
 ### Interface

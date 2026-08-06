@@ -1,15 +1,20 @@
 /**
  * Auto Reconnect — multi-state recovery for BaiakIdle.
  *
- * - homepage: path / → /jogar/ (quick)
- * - maintenance / disconnected / multiAccount / stuck on /jogar
+ * Homepage hop:
+ * - Only exact path `/` (never other /* pages — free site navigation)
+ * - Wait 10s, then → /jogar/
+ * - Session Pause (sessionStorage) blocks auto actions until unpaused
  *
- * Settings are re-read from localStorage each tick (works after enabling on /jogar,
- * and the mini bar on non-jogar can toggle without the full HUD).
+ * Maintenance:
+ * - Home "Em Manutenção" never flips to "Jogar Agora" → go to /jogar to watch
+ * - /jogar "JOGO EM MANUTENÇÃO": no 3s thrash; reload every 30s; also detect
+ *   overlay disappearing live without reload
+ *
+ * Other: disconnected / multiAccount / stuck on /jogar
  */
 import { gameplayConnected } from "../socket";
 import {
-  STORAGE_KEY,
   defaults,
   loadSettings,
   saveSettings,
@@ -21,7 +26,8 @@ declare const unsafeWindow: Window & typeof globalThis;
 
 export type ReconnectReason =
   | "homepage"
-  | "maintenance"
+  | "maintenanceHome"
+  | "maintenanceJogar"
   | "disconnected"
   | "multiAccount"
   | "stuck";
@@ -29,42 +35,84 @@ export type ReconnectReason =
 const MAINT_RE =
   /jogo\s*em\s*manuten[cç][aã]o|servidor\s*est[aá]\s*em\s*manuten|em\s*manuten[cç][aã]o|under\s*maintenance|game\s*under\s*maintenance/i;
 
+/**
+ * Multi-account / IP concurrent session:
+ * - Title: "LIMITE DE CONTAS SIMULTÂNEAS"
+ * - Hint: "Já existe uma conta jogando nesta conexão…"
+ * - Also session takeover elsewhere ("Reassumir aqui")
+ */
 const MULTI_RE =
-  /sess[aã]o\s*aberta\s*em\s*outro|assumida\s*em\s*outro|outra\s*aba\s*ou\s*dispositivo|mais\s*de\s*uma\s*conta|taken\s*over|another\s*device|another\s*tab/i;
+  /limite\s*de\s*contas\s*simult|contas\s*simult[aâ]ne|simultaneous\s*accounts|j[aá]\s*existe\s*uma\s*conta|mais\s*de\s*uma\s*conta|s[oó]\s*[eé]\s*permitido\s*uma\s*por\s*vez|desconectar\s*sess[aã]o\s*do\s*jogo|sess[aã]o\s*aberta\s*em\s*outro|assumida\s*em\s*outro|outra\s*aba\s*ou\s*dispositivo|taken\s*over|another\s*device|another\s*tab|only\s*one\s*at\s*a\s*time/i;
 
 const DISCONNECT_HINT_RE =
   /reconectando\s*em|reconectar\s*agora|desconectad|disconnected|reconnecting/i;
 
+/** Exact homepage only — not /ranking, /blog, etc. */
+const HOMEPAGE_DELAY_MS = 10_000;
+/** While /jogar shows maintenance modal, soft-refresh cadence. */
+const MAINT_JOGAR_RELOAD_MS = 30_000;
+
 const MINI_BAR_ID = "baiak-reconnect-mini";
-const VALID_HUNT_IDS = new Set<string>(); // reconnect doesn't need hunt validation
+const SS_PAUSE = "baiakidle-helper-rc-pause";
+const SS_MAINT_WATCH = "baiakidle-helper-maint-watch";
+const VALID_HUNT_IDS = new Set<string>();
 
 let lastActionAt = 0;
 let lastReason: ReconnectReason | null = null;
 let startedAt = Date.now();
 let lastSkipLogAt = 0;
+let lastMaintLogAt = 0;
 let getSettingsExternal: (() => Settings) | null = null;
 
 export function isJogarPath(pathname = unsafeWindow.location.pathname): boolean {
   return /^\/jogar(\/|$)/i.test(pathname);
 }
 
-function pathIsHomepage(pathname: string): boolean {
-  // Also treat bare origin paths used by some landings.
-  return (
-    pathname === "/" ||
-    pathname === "" ||
-    pathname === "/index.html" ||
-    pathname === "/index" ||
-    /^\/(home|inicio)\/?$/i.test(pathname)
-  );
+/** Bare site home only (`/` or empty). Other /* must never auto-hop to /jogar. */
+export function pathIsHomepage(pathname: string): boolean {
+  const p = (pathname || "/").replace(/\/+$/, "") || "/";
+  return p === "/";
+}
+
+function ssGet(key: string): boolean {
+  try {
+    return unsafeWindow.sessionStorage.getItem(key) === "1";
+  } catch {
+    return false;
+  }
+}
+
+function ssSet(key: string, on: boolean): void {
+  try {
+    if (on) unsafeWindow.sessionStorage.setItem(key, "1");
+    else unsafeWindow.sessionStorage.removeItem(key);
+  } catch {
+    /* private mode */
+  }
+}
+
+export function isReconnectSessionPaused(): boolean {
+  return ssGet(SS_PAUSE);
+}
+
+export function setReconnectSessionPaused(paused: boolean): void {
+  ssSet(SS_PAUSE, paused);
+  console.info(`[BaiakIdle Helper] reconnect session pause=${paused}`);
+  updateMiniBar();
+}
+
+function isMaintWatch(): boolean {
+  return ssGet(SS_MAINT_WATCH);
+}
+
+function setMaintWatch(on: boolean): void {
+  ssSet(SS_MAINT_WATCH, on);
 }
 
 function readLiveSettings(): Settings {
   try {
     if (getSettingsExternal) {
-      // Prefer in-memory when on /jogar (React may have fresher state).
       const live = getSettingsExternal();
-      // Always merge with storage so homepage toggles persist across navigations.
       const stored = loadSettings(unsafeWindow.localStorage, VALID_HUNT_IDS);
       return { ...stored, ...live, transferTiers: live.transferTiers ?? stored.transferTiers };
     }
@@ -97,11 +145,31 @@ function sampleText(doc: Document): string {
     doc.querySelector(".auth-card") ??
     doc.querySelector("#root > div") ??
     doc.body;
-  if (main && main !== overlay) {
+  if (main) {
     const t = (main.textContent ?? "").trim();
     if (t.length > 0) parts.push(t.slice(0, 2_500));
   }
   return parts.join("\n");
+}
+
+/** Visible #conn-overlay with JOGO EM MANUTENÇÃO (on /jogar). */
+function maintenanceOverlayOpen(doc: Document): boolean {
+  const overlay = doc.getElementById("conn-overlay");
+  if (!overlay || overlay.classList.contains("hidden")) return false;
+  return MAINT_RE.test(overlay.textContent ?? "");
+}
+
+/** Homepage CTA still "Em Manutenção" (button never flips by itself). */
+function maintenanceHomeCta(doc: Document): boolean {
+  for (const el of doc.querySelectorAll<HTMLElement>("a, button, [role='button']")) {
+    const text = (el.textContent ?? "").replace(/\s+/g, " ").trim();
+    if (text && MAINT_RE.test(text)) return true;
+  }
+  return MAINT_RE.test(doc.title ?? "") || MAINT_RE.test(sampleText(doc));
+}
+
+function looksLikeMaintenance(doc: Document): boolean {
+  return maintenanceOverlayOpen(doc) || maintenanceHomeCta(doc);
 }
 
 function multiAccountOverlay(doc: Document): boolean {
@@ -110,12 +178,14 @@ function multiAccountOverlay(doc: Document): boolean {
   const title = (overlay.querySelector(".auth-title")?.textContent ?? "").trim();
   const hint = (doc.getElementById("conn-hint")?.textContent ?? "").trim();
   const retry = (doc.getElementById("conn-retry")?.textContent ?? "").trim();
-  return MULTI_RE.test(`${title}\n${hint}\n${retry}`) || /reassumir/i.test(retry);
+  const blob = `${title}\n${hint}\n${retry}\n${overlay.textContent ?? ""}`;
+  return MULTI_RE.test(blob) || /reassumir/i.test(retry);
 }
 
 function disconnectedOverlay(doc: Document): boolean {
   if (!isConnOverlayOpen(doc)) return false;
   if (multiAccountOverlay(doc)) return false;
+  if (maintenanceOverlayOpen(doc)) return false;
   const hint = (doc.getElementById("conn-hint")?.textContent ?? "").trim();
   const retry = (doc.getElementById("conn-retry")?.textContent ?? "").trim();
   return DISCONNECT_HINT_RE.test(`${hint}\n${retry}`) || isJogarPath();
@@ -123,19 +193,26 @@ function disconnectedOverlay(doc: Document): boolean {
 
 export function detectReconnectReason(doc: Document, loc: Location): ReconnectReason | null {
   const path = loc.pathname || "/";
-
-  if (pathIsHomepage(path)) return "homepage";
-  if (isQueueOpen(doc)) return null;
-
   const sample = sampleText(doc);
-  if (MAINT_RE.test(sample) || MAINT_RE.test(doc.title ?? "")) return "maintenance";
+
+  // /jogar maintenance modal
+  if (isJogarPath(path) && maintenanceOverlayOpen(doc)) return "maintenanceJogar";
+
+  // Exact home with "Em Manutenção" CTA
+  if (pathIsHomepage(path) && maintenanceHomeCta(doc)) return "maintenanceHome";
+
+  // Only bare `/` auto-enters game (never other site pages)
+  if (pathIsHomepage(path)) return "homepage";
+
+  if (isQueueOpen(doc)) return null;
   if (multiAccountOverlay(doc) || MULTI_RE.test(sample)) return "multiAccount";
   if (disconnectedOverlay(doc)) return "disconnected";
 
   if (isJogarPath(path)) {
     if (Date.now() - startedAt < 20_000) return null;
-    const hasWave = Boolean(doc.getElementById("wave-title"));
-    if (!hasWave && !gameplayConnected() && !isConnOverlayOpen(doc)) return "stuck";
+    const wave = (doc.getElementById("wave-title")?.textContent ?? "").trim();
+    const waveOk = wave.length > 0 && wave !== "—";
+    if (!waveOk && !gameplayConnected() && !isConnOverlayOpen(doc)) return "stuck";
   }
   return null;
 }
@@ -150,9 +227,12 @@ function findReconnectButton(doc: Document): HTMLElement | null {
   return null;
 }
 
-function goToJogar(): void {
+function goToJogar(fromMaint = false): void {
+  if (fromMaint) setMaintWatch(true);
   const url = `${unsafeWindow.location.origin}/jogar/`;
-  console.info(`[BaiakIdle Helper] reconnect → ${url}`);
+  console.info(
+    `[BaiakIdle Helper] reconnect → ${url}${fromMaint ? " (maint watch)" : ""}`
+  );
   unsafeWindow.location.assign(url);
 }
 
@@ -164,17 +244,18 @@ function reloadPage(): void {
 function minIntervalFor(reason: ReconnectReason, baseMs: number): number {
   switch (reason) {
     case "homepage":
-      // Fast return to game from landing page.
-      return Math.min(baseMs, 3_000);
-    case "maintenance":
-      return Math.max(baseMs, 60_000);
+    case "maintenanceHome":
+      return HOMEPAGE_DELAY_MS;
+    case "maintenanceJogar":
+      return MAINT_JOGAR_RELOAD_MS;
     case "multiAccount":
-      return Math.max(baseMs, 45_000);
+      // Fixed 10s retry for "LIMITE DE CONTAS SIMULTÂNEAS".
+      return 10_000;
     case "stuck":
       return Math.max(baseMs, 25_000);
     case "disconnected":
     default:
-      return baseMs;
+      return Math.max(baseMs, 10_000);
   }
 }
 
@@ -185,32 +266,43 @@ function act(reason: ReconnectReason, doc: Document): void {
   updateMiniBar();
 
   if (reason === "homepage") {
-    goToJogar();
+    goToJogar(false);
+    return;
+  }
+
+  if (reason === "maintenanceHome") {
+    // Home CTA never self-updates — park on /jogar maint modal to watch.
+    goToJogar(true);
+    return;
+  }
+
+  if (reason === "maintenanceJogar") {
+    // Soft refresh every 30s while modal still present.
+    setMaintWatch(true);
+    reloadPage();
     return;
   }
 
   if (reason === "disconnected" || reason === "multiAccount") {
     const btn = findReconnectButton(doc);
     if (btn) {
-      console.info("[BaiakIdle Helper] reconnect: click #conn-retry");
+      console.info(
+        `[BaiakIdle Helper] reconnect: click #conn-retry (${reason})`
+      );
       btn.click();
+      // Multi-account "Tentar de novo" only reloads — if still blocked, next tick retries.
       unsafeWindow.setTimeout(() => {
+        if (looksLikeMaintenance(unsafeWindow.document)) return;
         if (
           isConnOverlayOpen(unsafeWindow.document) ||
           pathIsHomepage(unsafeWindow.location.pathname)
         ) {
           reloadPage();
         }
-      }, 2_500);
+      }, reason === "multiAccount" ? 1_200 : 2_500);
       return;
     }
     reloadPage();
-    return;
-  }
-
-  if (reason === "maintenance") {
-    if (pathIsHomepage(unsafeWindow.location.pathname) || !isJogarPath()) goToJogar();
-    else reloadPage();
     return;
   }
 
@@ -221,7 +313,8 @@ function reasonEnabled(reason: ReconnectReason, settings: Settings): boolean {
   switch (reason) {
     case "homepage":
       return settings.reconnectHomepage;
-    case "maintenance":
+    case "maintenanceHome":
+    case "maintenanceJogar":
       return settings.reconnectMaintenance;
     case "disconnected":
     case "stuck":
@@ -233,10 +326,29 @@ function reasonEnabled(reason: ReconnectReason, settings: Settings): boolean {
   }
 }
 
+/**
+ * If we were watching maint on /jogar and the modal is gone, clear the flag.
+ * Game may reconnect itself; otherwise disconnected/stuck handlers take over.
+ */
+function clearMaintWatchIfEnded(doc: Document): void {
+  if (!isJogarPath()) return;
+  if (!isMaintWatch()) return;
+  if (maintenanceOverlayOpen(doc)) return;
+  setMaintWatch(false);
+  console.info(
+    "[BaiakIdle Helper] reconnect: JOGO EM MANUTENÇÃO sumiu — maint watch off"
+  );
+}
+
 export function tickAutoReconnect(settings?: Settings): void {
   const page = unsafeWindow;
   const cfg = settings ?? readLiveSettings();
-  const reason = detectReconnectReason(page.document, page.location);
+  const doc = page.document;
+
+  clearMaintWatchIfEnded(doc);
+
+  const reason = detectReconnectReason(doc, page.location);
+  const paused = isReconnectSessionPaused();
 
   if (!cfg.autoReconnect) {
     const now = Date.now();
@@ -251,28 +363,61 @@ export function tickAutoReconnect(settings?: Settings): void {
     return;
   }
 
+  if (paused) {
+    const now = Date.now();
+    if (now - lastSkipLogAt > 12_000) {
+      lastSkipLogAt = now;
+      console.info(
+        `[BaiakIdle Helper] reconnect session PAUSED path=${page.location.pathname}` +
+          (reason ? ` (held: ${reason})` : "")
+      );
+    }
+    updateMiniBar();
+    return;
+  }
+
   if (!reason) {
     updateMiniBar();
     return;
   }
+
+  // Live detect: maint overlay gone on /jogar between 30s reloads — no action needed.
+  if (reason === "maintenanceJogar") {
+    lastReason = reason;
+    // fall through to interval reload
+  }
+
   if (!reasonEnabled(reason, cfg)) {
-    console.info(
-      `[BaiakIdle Helper] reconnect skip: reason=${reason} but sub-option OFF`
-    );
+    if (Date.now() - lastSkipLogAt > 12_000) {
+      lastSkipLogAt = Date.now();
+      console.info(
+        `[BaiakIdle Helper] reconnect skip: reason=${reason} but sub-option OFF`
+      );
+    }
     updateMiniBar();
     return;
   }
 
   const wait = minIntervalFor(reason, cfg.reconnectIntervalMs);
   if (Date.now() - lastActionAt < wait) {
+    if (
+      (reason === "maintenanceJogar" || reason === "maintenanceHome") &&
+      Date.now() - lastMaintLogAt > 15_000
+    ) {
+      lastMaintLogAt = Date.now();
+      const left = Math.ceil((wait - (Date.now() - lastActionAt)) / 1_000);
+      console.info(
+        `[BaiakIdle Helper] reconnect: ${reason} — next in ~${left}s path=${page.location.pathname}`
+      );
+    }
     updateMiniBar();
     return;
   }
 
-  act(reason, page.document);
+  act(reason, doc);
 }
 
-/** Tiny bar on non-/jogar pages so user can enable reconnect without HUD. */
+/** Mini bar on non-/jogar so user can pause / force /jogar without full HUD. */
 function ensureMiniBar(): HTMLElement | null {
   const page = unsafeWindow;
   if (isJogarPath()) {
@@ -289,7 +434,7 @@ function ensureMiniBar(): HTMLElement | null {
     <style>
       #${MINI_BAR_ID}{
         position:fixed;z-index:2147483646;right:12px;bottom:12px;
-        display:flex;flex-direction:column;gap:6px;min-width:200px;max-width:280px;
+        display:flex;flex-direction:column;gap:6px;min-width:220px;max-width:300px;
         padding:10px 12px;border:1px solid #5c5c56;border-radius:8px;
         background:linear-gradient(180deg,rgba(40,40,38,.96),rgba(22,22,20,.96));
         color:#eae8e2;font:12px/1.35 system-ui,"Segoe UI",sans-serif;
@@ -298,19 +443,22 @@ function ensureMiniBar(): HTMLElement | null {
       #${MINI_BAR_ID} b{color:#e8c34e;font-size:11px;letter-spacing:.04em;text-transform:uppercase}
       #${MINI_BAR_ID} .st{color:#a9a69d;font-size:11px}
       #${MINI_BAR_ID} .st.on{color:#7dcea0}
-      #${MINI_BAR_ID} .row{display:flex;gap:6px;align-items:center}
+      #${MINI_BAR_ID} .st.pause{color:#e8a54e}
+      #${MINI_BAR_ID} .row{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
       #${MINI_BAR_ID} button{
         all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;
         padding:6px 8px;border:1px solid #5c5c56;border-radius:5px;
         background:#1c1c1a;color:#eae8e2;font:700 11px system-ui;
       }
       #${MINI_BAR_ID} button.primary{border-color:#e8c34e;color:#fff6c9;background:rgba(95,81,30,.55)}
+      #${MINI_BAR_ID} button.pause-on{border-color:#e8a54e;color:#ffd9a0}
       #${MINI_BAR_ID} button:hover{border-color:#e8c34e}
     </style>
     <b>Helper · Reconnect</b>
     <div class="st" data-st></div>
     <div class="row">
       <button type="button" data-act="toggle">Ligar</button>
+      <button type="button" data-act="pause">Pause</button>
       <button type="button" data-act="now" class="primary">Ir /jogar</button>
     </div>
   `;
@@ -321,14 +469,19 @@ function ensureMiniBar(): HTMLElement | null {
       autoReconnect: next,
       reconnectHomepage: true,
       reconnectDisconnected: true,
-      reconnectMaintenance: true
+      reconnectMaintenance: true,
+      reconnectMultiAccount: true
     });
     console.info(`[BaiakIdle Helper] reconnect mini: autoReconnect=${next}`);
     updateMiniBar();
     if (next) tickAutoReconnect();
   });
+  bar.querySelector<HTMLButtonElement>('[data-act="pause"]')?.addEventListener("click", () => {
+    setReconnectSessionPaused(!isReconnectSessionPaused());
+  });
   bar.querySelector<HTMLButtonElement>('[data-act="now"]')?.addEventListener("click", () => {
-    goToJogar();
+    // Manual always allowed (user intent).
+    goToJogar(looksLikeMaintenance(unsafeWindow.document));
   });
   page.document.body.append(bar);
   return bar;
@@ -340,21 +493,42 @@ function updateMiniBar(): void {
   if (!bar) return;
   const cfg = readLiveSettings();
   const reason = detectReconnectReason(unsafeWindow.document, unsafeWindow.location);
+  const paused = isReconnectSessionPaused();
   const st = bar.querySelector<HTMLElement>("[data-st]");
   const toggle = bar.querySelector<HTMLButtonElement>('[data-act="toggle"]');
+  const pauseBtn = bar.querySelector<HTMLButtonElement>('[data-act="pause"]');
+  const path = unsafeWindow.location.pathname;
+  const homeOnly = pathIsHomepage(path);
+
   if (st) {
-    st.classList.toggle("on", cfg.autoReconnect);
-    st.textContent = cfg.autoReconnect
-      ? `ON · ${reason ?? "aguardando"} · path ${unsafeWindow.location.pathname}`
-      : `OFF · ligue para auto /jogar · path ${unsafeWindow.location.pathname}`;
+    st.classList.toggle("on", cfg.autoReconnect && !paused);
+    st.classList.toggle("pause", paused);
+    if (!cfg.autoReconnect) {
+      st.textContent = `OFF · path ${path}`;
+    } else if (paused) {
+      st.textContent = `PAUSADO (sessão) · path ${path} · despause p/ auto`;
+    } else if (reason === "maintenanceHome") {
+      st.textContent = `ON · maint home → /jogar em 10s · ${path}`;
+    } else if (reason === "homepage") {
+      st.textContent = homeOnly
+        ? `ON · home → /jogar em 10s`
+        : `ON · path ${path} (auto só em /)`;
+    } else {
+      st.textContent = `ON · ${reason ?? "ok"} · ${path}${homeOnly ? "" : " (sem auto hop)"}`;
+    }
   }
   if (toggle) toggle.textContent = cfg.autoReconnect ? "Desligar" : "Ligar";
+  if (pauseBtn) {
+    pauseBtn.textContent = paused ? "Retomar" : "Pause";
+    pauseBtn.classList.toggle("pause-on", paused);
+  }
 }
 
 export function startReconnectWatcher(getSettings: () => Settings): void {
   getSettingsExternal = getSettings;
   startedAt = Date.now();
-  lastActionAt = 0;
+  // Force first homepage/maint action to wait full delay (not immediate on load).
+  lastActionAt = Date.now();
   lastReason = null;
 
   const page = unsafeWindow;
@@ -366,7 +540,6 @@ export function startReconnectWatcher(getSettings: () => Settings): void {
     }
   }, 1_500);
 
-  // Homepage: try quickly once settings allow.
   page.setTimeout(() => {
     try {
       tickAutoReconnect();
@@ -375,7 +548,6 @@ export function startReconnectWatcher(getSettings: () => Settings): void {
     }
   }, 1_200);
 
-  // Mini bar after body exists
   const mountMini = () => {
     try {
       updateMiniBar();
@@ -389,7 +561,8 @@ export function startReconnectWatcher(getSettings: () => Settings): void {
 
   console.info(
     `[BaiakIdle Helper] reconnect watcher ready path=${page.location.pathname} ` +
-      `autoReconnect=${readLiveSettings().autoReconnect}`
+      `autoReconnect=${readLiveSettings().autoReconnect} ` +
+      `sessionPause=${isReconnectSessionPaused()} maintWatch=${isMaintWatch()}`
   );
 }
 

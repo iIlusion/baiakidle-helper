@@ -438,41 +438,42 @@
   .baiak-switch, .baiak-switch-thumb { transition: none !important; }
 }
 
-/* Native analyser rate switcher */
+/* Analyser rate switcher — inline label + value, no chip/card */
+.baiak-rate-row {
+  cursor: pointer;
+  border-radius: 3px;
+}
+.baiak-rate-row:hover .baiak-rate-value,
+.baiak-rate-row:hover .baiak-rate-native {
+  filter: brightness(1.12);
+}
+.baiak-rate-row:focus-visible {
+  outline: 1px solid var(--gold, #e8c34e);
+  outline-offset: 2px;
+}
 .baiak-rate-slot {
   display: inline-flex;
   align-items: baseline;
   justify-content: flex-end;
-  gap: 4px;
   min-width: 0;
+  cursor: pointer;
 }
 .baiak-rate-native { cursor: pointer; }
-.baiak-rate-control {
-  all: unset;
-  display: inline-flex;
-  align-items: baseline;
-  gap: 4px;
+.baiak-rate-value {
   cursor: pointer;
-  font: inherit;
-}
-.baiak-rate-period {
-  padding: 1px 3px;
-  color: var(--gold, #e8c34e);
-  border: 1px solid color-mix(in srgb, var(--gold, #e8c34e) 48%, transparent);
-  border-radius: 2px;
-  background: color-mix(in srgb, var(--gold, #e8c34e) 9%, transparent);
-  font: 700 7px/1.2 ui-monospace, "Cascadia Mono", Consolas, monospace;
-  letter-spacing: .03em;
-  vertical-align: 1px;
+  /* ~12% larger than native analyzer numbers */
+  font-size: 1.12em !important;
+  font-variant-numeric: tabular-nums;
 }
 .baiak-rate-slot[data-mode="game"] .baiak-rate-value { display: none; }
-.baiak-rate-control:hover .baiak-rate-period,
-.baiak-rate-native:hover + .baiak-rate-control .baiak-rate-period {
-  color: #fff3b0;
-  border-color: var(--gold, #e8c34e);
+.baiak-rate-slot[data-mode="session"] .baiak-rate-native { display: none !important; }
+/* Mode lives in the left muted label: "XP/h (Sessão)" — subtle gold paren */
+.baiak-rate-row > .muted {
+  cursor: pointer;
+  user-select: none;
 }
-.baiak-rate-control:focus-visible,
-.baiak-rate-native:focus-visible {
-  outline: 1px solid var(--gold, #e8c34e);
-  outline-offset: 2px;
+.baiak-rate-row > .muted .baiak-rate-mode {
+  color: var(--gold, #e8c34e);
+  font-weight: 600;
+  letter-spacing: .02em;
 }

@@ -46,9 +46,12 @@ export type Settings = {
    * (particles, projectiles, floating combat art). Combat still resolves server-side.
    */
   reduceVfx: boolean;
-  /** Share each active auction on Market chat (`aucshare`) on a per-listing timer. */
+  /** Share each active auction on Market chat (`aucshare`) on a timer. */
   autoMarketAnnounce: boolean;
-  /** Per-listing interval in ms (default 10 minutes). */
+  /**
+   * Min interval between aucshare sends (any listing).
+   * Server enforces ~4 minutes; default matches that. User may increase.
+   */
   autoMarketAnnounceIntervalMs: number;
 };
 
@@ -80,10 +83,12 @@ export const defaults: Settings = {
   reconnectHomepage: true,
   reconnectMaintenance: true,
   reconnectDisconnected: true,
-  reconnectMultiAccount: false,
+  /** Retry "LIMITE DE CONTAS SIMULTÂNEAS" / takeover (click Tentar de novo). */
+  reconnectMultiAccount: true,
   reduceVfx: false,
   autoMarketAnnounce: false,
-  autoMarketAnnounceIntervalMs: 10 * 60 * 1_000
+  /** Native server gap is ~4 min between any aucshare. */
+  autoMarketAnnounceIntervalMs: 4 * 60 * 1_000
 };
 
 function asBool(value: unknown, fallback: boolean): boolean {
@@ -163,11 +168,11 @@ export function clampAutoSellThresholdPct(value: unknown): number {
   return Math.max(1, Math.min(100, Math.round(n)));
 }
 
-/** 2 min … 6 h per listing (game market channel also enforces ~120s global). */
+/** 4 min (server floor) … 6 h between Market aucshare sends. */
 export function clampMarketAnnounceIntervalMs(value: unknown): number {
   const n = typeof value === "number" ? value : Number(value);
   if (!Number.isFinite(n)) return defaults.autoMarketAnnounceIntervalMs;
-  return Math.max(2 * 60 * 1_000, Math.min(6 * 60 * 60 * 1_000, Math.round(n)));
+  return Math.max(4 * 60 * 1_000, Math.min(6 * 60 * 60 * 1_000, Math.round(n)));
 }
 
 /** 5s … 10 min between reconnect attempts. */

@@ -1,9 +1,12 @@
 const HOUR = 3_600_000;
 const decoder = new TextDecoder();
-const SELL_NOTIFY_RE = /vendidos|sold \{n\} items for|sold \{mc\} materials for/i;
+/** Template or interpolated sell logs (items, materials, or both). */
+const SELL_NOTIFY_RE =
+  /vendidos|sold \{n\} items for|sold \{mc\} materials for|sold \d+ items for|materiais por|materials for/i;
 
 export const RATE_MODES = ["session", "game"] as const;
 export type RateMode = (typeof RATE_MODES)[number];
+
 
 function readString(bytes: Uint8Array, offset: number): [string, number] | undefined {
   const prefix = bytes[offset++];
@@ -101,10 +104,42 @@ function skipValue(bytes: Uint8Array, offset: number): number | undefined {
   if ((prefix & 0xe0) === 0xa0) return offset + 1 + (prefix & 0x1f);
   if (prefix === 0xd9) return offset + 2 + bytes[offset + 1];
   if (prefix === 0xda) return offset + 3 + ((bytes[offset + 1] << 8) | bytes[offset + 2]);
+  if (prefix === 0xdb) {
+    const len =
+      ((bytes[offset + 1] << 24) >>> 0) +
+      (bytes[offset + 2] << 16) +
+      (bytes[offset + 3] << 8) +
+      bytes[offset + 4];
+    return offset + 5 + len;
+  }
   if (prefix === 0xcc || prefix === 0xd0) return offset + 2;
   if (prefix === 0xcd || prefix === 0xd1) return offset + 3;
   if (prefix === 0xce || prefix === 0xd2 || prefix === 0xca) return offset + 5;
   if (prefix === 0xcf || prefix === 0xd3 || prefix === 0xcb) return offset + 9;
+  // msgpack fixext / ext (msgpackr records use 0xd4 0x72 …)
+  if (prefix === 0xd4) return offset + 3;
+  if (prefix === 0xd5) return offset + 4;
+  if (prefix === 0xd6) return offset + 6;
+  if (prefix === 0xd7) return offset + 10;
+  if (prefix === 0xd8) return offset + 18;
+  if (prefix === 0xc7) return offset + 3 + (bytes[offset + 1] ?? 0);
+  if (prefix === 0xc8) {
+    const len = ((bytes[offset + 1] ?? 0) << 8) | (bytes[offset + 2] ?? 0);
+    return offset + 4 + len;
+  }
+  if (prefix === 0xc9) {
+    const len =
+      ((bytes[offset + 1] << 24) >>> 0) +
+      (bytes[offset + 2] << 16) +
+      (bytes[offset + 3] << 8) +
+      bytes[offset + 4];
+    return offset + 6 + len;
+  }
+  if (prefix === 0xc4) return offset + 2 + (bytes[offset + 1] ?? 0);
+  if (prefix === 0xc5) {
+    const len = ((bytes[offset + 1] ?? 0) << 8) | (bytes[offset + 2] ?? 0);
+    return offset + 3 + len;
+  }
   if ((prefix & 0xf0) === 0x80) {
     let next = offset + 1;
     const count = prefix & 0x0f;
@@ -132,6 +167,16 @@ function skipValue(bytes: Uint8Array, offset: number): number | undefined {
   if ((prefix & 0xf0) === 0x90) {
     let next = offset + 1;
     const count = prefix & 0x0f;
+    for (let index = 0; index < count; index++) {
+      const afterValue = skipValue(bytes, next);
+      if (afterValue === undefined) return;
+      next = afterValue;
+    }
+    return next;
+  }
+  if (prefix === 0xdc) {
+    let next = offset + 3;
+    const count = (bytes[offset + 1] << 8) | bytes[offset + 2];
     for (let index = 0; index < count; index++) {
       const afterValue = skipValue(bytes, next);
       if (afterValue === undefined) return;
@@ -220,7 +265,9 @@ export function parseFx(bytes: Uint8Array): { type: "xp" | "gold"; amount: numbe
 
 /**
  * Gold from pouch sell notifications (manual sellall, script sell, or native auto-sell).
- * Matches server `notify` / `log` payloads like "Vendidos {n} itens por {g}g.".
+ *
+ * Dual-value form: "Vendidos {n} itens por {g}g + {mc} materiais por {mg}g."
+ * → total = g + mg (both must be summed).
  */
 export function parseSoldGold(bytes: Uint8Array): number | undefined {
   if (bytes[0] !== 0x0d) return;
@@ -229,22 +276,41 @@ export function parseSoldGold(bytes: Uint8Array): number | undefined {
   const type = message[0];
   if (type !== "notify" && type !== "log") return;
 
+  // Prefer structured params; fall back to raw key scan (g + mg).
+  let itemsGold = 0;
+  let matsGold = 0;
+  let matchedText = false;
+
   const root = readStringMap(bytes, message[1]);
-  if (!root) return;
-  const payload = root[0];
-  const text = typeof payload.text === "string" ? payload.text : "";
-  if (!SELL_NOTIFY_RE.test(text)) return;
+  if (root) {
+    const text = typeof root[0].text === "string" ? root[0].text : "";
+    if (SELL_NOTIFY_RE.test(text)) matchedText = true;
+  } else {
+    // text may still be in the frame even if map walk failed
+    const decoded = decoder.decode(bytes);
+    if (SELL_NOTIFY_RE.test(decoded)) matchedText = true;
+  }
+  if (!matchedText) return;
 
-  // Nested params map is stored as skipped above when nested — re-parse params carefully.
-  // readStringMap only keeps string/number leaves; nested map for params is skipped.
-  // So scan the payload region again for a params map.
   const params = readNestedParams(bytes, message[1]);
-  if (!params) return;
+  if (params) {
+    itemsGold = numberParam(params, "g");
+    matsGold = numberParam(params, "mg");
+  }
 
-  const itemsGold = numberParam(params, "g");
-  const matsGold = numberParam(params, "mg");
+  // Always merge with a full-frame scan so dual g+mg is never dropped when
+  // nested map walk only recovered one key or failed partway.
+  const scanned = scanSellGoldKeys(bytes);
+  if (scanned.g > itemsGold) itemsGold = scanned.g;
+  if (scanned.mg > matsGold) matsGold = scanned.mg;
+
   const total = itemsGold + matsGold;
-  return total > 0 ? total : undefined;
+  if (total > 0) return total;
+
+  // Last resort: interpolated Portuguese/English text with both amounts.
+  const text = typeof root?.[0].text === "string" ? root[0].text : decoder.decode(bytes);
+  const fromText = parseSoldGoldFromText(text);
+  return fromText > 0 ? fromText : undefined;
 }
 
 function numberParam(params: Record<string, string | number>, key: string): number {
@@ -255,6 +321,48 @@ function numberParam(params: Record<string, string | number>, key: string): numb
     return Number.isFinite(parsed) ? Math.max(0, parsed) : 0;
   }
   return 0;
+}
+
+/**
+ * Scan wire for msgpack keys "g" / "mg" followed by a number.
+ * Used so dual sells always sum item gold + material gold.
+ */
+function scanSellGoldKeys(bytes: Uint8Array): { g: number; mg: number } {
+  let g = 0;
+  let mg = 0;
+  for (let i = 0; i < bytes.length - 2; i++) {
+    // fixstr1 "g" = a1 67 — but not part of "mg" (a2 6d 67)
+    if (bytes[i] === 0xa1 && bytes[i + 1] === 0x67) {
+      // skip if this is the trailing 'g' of a longer key — fixstr1 is exact
+      const num = readNumber(bytes, i + 2);
+      if (num && num[0] > 0) g = Math.max(g, num[0]);
+    }
+    // fixstr2 "mg" = a2 6d 67
+    if (bytes[i] === 0xa2 && bytes[i + 1] === 0x6d && bytes[i + 2] === 0x67) {
+      const num = readNumber(bytes, i + 3);
+      if (num && num[0] > 0) mg = Math.max(mg, num[0]);
+    }
+  }
+  return { g, mg };
+}
+
+/** e.g. "Vendidos 30 itens por 100.000g + 5 materiais por 18.116g." */
+function parseSoldGoldFromText(text: string): number {
+  const amounts: number[] = [];
+  // PT: "por 100.000g" (dot = thousands)
+  const pt = /por\s+([\d.]+)\s*g/gi;
+  let m: RegExpExecArray | null;
+  while ((m = pt.exec(text))) {
+    const val = Number(m[1].replace(/\./g, ""));
+    if (Number.isFinite(val) && val > 0) amounts.push(val);
+  }
+  // EN: "for 1,234g" / "for 1234g"
+  const en = /for\s+([\d,]+)\s*g/gi;
+  while ((m = en.exec(text))) {
+    const val = Number(m[1].replace(/,/g, ""));
+    if (Number.isFinite(val) && val > 0) amounts.push(val);
+  }
+  return amounts.reduce((a, b) => a + b, 0);
 }
 
 function readNestedParams(

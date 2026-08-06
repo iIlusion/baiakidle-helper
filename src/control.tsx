@@ -535,7 +535,7 @@ function ControlMenu(): React.JSX.Element {
                 <SettingRow
                   id="baiak-auto-market-announce"
                   title="Auto Market Announce"
-                  description="Envia aucshare (Compartilhar no Market) por anúncio ativo, sem abrir o modal."
+                  description="aucshare no Market. Coleta IDs sozinha (Market invisível → Meus anúncios → fecha). Sem token do helper."
                   checked={value.autoMarketAnnounce}
                   onCheckedChange={checked => change("autoMarketAnnounce", checked)}
                 />
@@ -549,22 +549,22 @@ function ControlMenu(): React.JSX.Element {
                     }`}
                   >
                     <label htmlFor="baiak-market-announce-interval">
-                      <span className="baiak-setting-title">Intervalo por anúncio (min)</span>
+                      <span className="baiak-setting-title">Intervalo entre anúncios (min)</span>
                       <span className="baiak-setting-description">
-                        Cada listing tem o próprio timer. Entre shares o jogo pede ~2 min no canal Market.
+                        Mín. 4 min + jitter. IDs: harvest invisível a cada ~3 min (ou quando vazio).
                       </span>
                     </label>
                     <input
                       id="baiak-market-announce-interval"
                       className="baiak-number"
                       type="number"
-                      min={2}
+                      min={4}
                       max={360}
                       step={1}
                       disabled={!value.autoMarketAnnounce}
                       value={Math.round(value.autoMarketAnnounceIntervalMs / 60_000)}
                       onChange={event => changeMarketAnnounceIntervalMin(event.target.value)}
-                      aria-label="Intervalo em minutos por anúncio"
+                      aria-label="Intervalo em minutos entre anúncios no Market"
                     />
                   </div>
                 </div>
@@ -574,7 +574,7 @@ function ControlMenu(): React.JSX.Element {
                 <SettingRow
                   id="baiak-auto-reconnect"
                   title="Auto Reconnect"
-                  description="Homepage → /jogar, overlay de queda, manutenção. Multi-conta opcional."
+                  description="Só path / → /jogar (10s). Maint: home → /jogar e poll 30s no modal. Pause na mini-bar (sessão)."
                   checked={value.autoReconnect}
                   onCheckedChange={checked => change("autoReconnect", checked)}
                 />
@@ -609,7 +609,7 @@ function ControlMenu(): React.JSX.Element {
                     compact
                     disabled={!value.autoReconnect}
                     title="Homepage"
-                    description="Se cair na home (baiakidle.com/), abre /jogar/."
+                    description="Apenas path exato / (não /*). Após 10s → /jogar/."
                     checked={value.reconnectHomepage}
                     onCheckedChange={checked => change("reconnectHomepage", checked)}
                   />
@@ -618,7 +618,7 @@ function ControlMenu(): React.JSX.Element {
                     compact
                     disabled={!value.autoReconnect}
                     title="Manutenção"
-                    description="Detecta texto de manutenção e tenta de novo (espera ≥ 60s)."
+                    description="Home 'Em Manutenção' → /jogar. No modal, refresh a cada 30s + detect se sumiu. Mini-bar: Pause (sessão)."
                     checked={value.reconnectMaintenance}
                     onCheckedChange={checked => change("reconnectMaintenance", checked)}
                   />
@@ -635,8 +635,8 @@ function ControlMenu(): React.JSX.Element {
                     id="baiak-reconnect-multi"
                     compact
                     disabled={!value.autoReconnect}
-                    title="Multi-conta / takeover"
-                    description="OFF por padrão — reload pode brigar com a outra sessão."
+                    title="Limite de contas / takeover"
+                    description="'LIMITE DE CONTAS SIMULTÂNEAS' e Reassumir — tenta de novo a cada 10s."
                     checked={value.reconnectMultiAccount}
                     onCheckedChange={checked => change("reconnectMultiAccount", checked)}
                   />

@@ -47,19 +47,32 @@ type Metric = {
   sessionSeenAt: number;
   lastDomTotal: number;
   pendingNetwork: number;
+  baseLabel: string;
 };
 
-/** Hunt Analyzer loot from real pouch sells (script + native auto-sell), not monster drops. */
+/**
+ * Hunt Analyzer "loot vendido": gold that entered the wallet this session.
+ * - sell notifies (g + mg) — pouch / auto-sell
+ * - fx gold drops — coins that go straight to wallet (no sell)
+ */
 type SoldLootState = {
   total: number;
   lastSessionMs: number;
-  /** session = loot vendido; game = valor nativo do Hunt Analyzer. */
+  /** session = vendas + gold drop; game = nativo do Hunt Analyzer. */
   mode: RateMode;
 };
 
 type LootField = "loot" | "balance";
 
-function savedModes(): Partial<Record<MetricKey | "loot", RateMode>> {
+type RateControl = {
+  native: HTMLElement;
+  slot: HTMLElement;
+  value: HTMLElement;
+  label: HTMLElement | null;
+  row: HTMLElement | null;
+};
+
+function savedModes(): Partial<Record<MetricKey | "loot", string>> {
   try {
     return JSON.parse(page.localStorage.getItem(MODE_STORAGE) ?? "{}");
   } catch {
@@ -68,11 +81,13 @@ function savedModes(): Partial<Record<MetricKey | "loot", RateMode>> {
 }
 
 const saved = savedModes();
-const xp = metric("xp", "an-raw", "an-session", "an-xph");
-const gold = metric("gold", "loot-gold", "loot-session", "loot-perhour");
+const xp = metric("xp", "an-raw", "an-session", "an-xph", "XP/h");
+const gold = metric("gold", "loot-gold", "loot-session", "loot-perhour", "Gold/h");
 const soldLoot: SoldLootState = loadSoldLoot();
 
 function validMode(value: unknown): RateMode {
+  // Migrate removed "wallet" fallback → session (sell texts + fx gold).
+  if (value === "wallet") return "session";
   return RATE_MODES.includes(value as RateMode) ? value as RateMode : "session";
 }
 
@@ -118,7 +133,7 @@ function flushSoldLootIfDirty(): void {
   if (soldLootDirty) persistSoldLoot(true);
 }
 
-function persistLootMode(): void {
+function persistAllModes(): void {
   page.localStorage.setItem(
     MODE_STORAGE,
     JSON.stringify({ xp: xp.mode, gold: gold.mode, loot: soldLoot.mode })
@@ -132,31 +147,81 @@ function resetSoldLoot(sessionMs = 0): void {
   persistSoldLoot();
 }
 
-function addSoldLoot(amount: number): void {
+/** @param renderNow false for high-frequency fx gold (1s tick redraws). */
+function addSoldLoot(amount: number, renderNow = true): void {
   if (!(amount > 0)) return;
   soldLoot.total += amount;
   persistSoldLoot();
-  renderSoldLoot();
+  if (renderNow) renderSoldLoot();
 }
 
 function formatGold(value: number): string {
   return Math.round(value).toLocaleString("pt-BR");
 }
 
+function modeLabel(mode: RateMode): string {
+  return mode === "session" ? "Sessão" : "Jogo";
+}
+
+/** Game-native tooltip only (`data-tip`). Never set `title` — fights browser tooltip. */
+function setGameTip(el: HTMLElement | null, tip: string): void {
+  if (!el) return;
+  if (el.getAttribute("title") != null) el.removeAttribute("title");
+  if (el.dataset.tip !== tip) el.dataset.tip = tip;
+}
+
+/** "XP/h (Sessão)" with gold mode word — no chip/card. */
+function applySideLabel(
+  label: HTMLElement | null,
+  base: string,
+  modeText: string,
+  tip: string
+): void {
+  if (!label) return;
+  const html = `${base} <span class="baiak-rate-mode">(${modeText})</span>`;
+  if (label.dataset.baiakLabelHtml !== html) {
+    label.innerHTML = html;
+    label.dataset.baiakLabelHtml = html;
+    label.dataset.baiakBase = base;
+  }
+  setGameTip(label, tip);
+}
+
 function selectNextLootMode(): void {
   soldLoot.mode = soldLoot.mode === "session" ? "game" : "session";
-  persistLootMode();
+  persistAllModes();
   renderSoldLoot();
 }
 
-function ensureLootField(field: LootField): {
-  native: HTMLElement;
-  slot: HTMLElement;
-  button: HTMLButtonElement;
-  value: HTMLElement;
-  period: HTMLElement;
-  label: HTMLElement | null;
-} | undefined {
+function wireRowClick(row: HTMLElement | null, slot: HTMLElement, onToggle: () => void): void {
+  if (row && !row.classList.contains("baiak-rate-row")) {
+    row.classList.add("baiak-rate-row");
+    row.tabIndex = 0;
+    row.setAttribute("role", "button");
+    row.addEventListener("click", event => {
+      // Don't steal panel min/reset buttons
+      const t = event.target as Element | null;
+      if (t?.closest?.("button, a, input, select, textarea")) return;
+      event.preventDefault();
+      onToggle();
+    });
+    row.addEventListener("keydown", event => {
+      if (event.key !== "Enter" && event.key !== " ") return;
+      event.preventDefault();
+      onToggle();
+    });
+  }
+  if (!slot.dataset.baiakClick) {
+    slot.dataset.baiakClick = "1";
+    slot.addEventListener("click", event => {
+      event.preventDefault();
+      event.stopPropagation();
+      onToggle();
+    });
+  }
+}
+
+function ensureLootField(field: LootField): RateControl | undefined {
   const nativeId = field === "loot" ? "an-loot" : "an-balance";
   const native = page.document.getElementById(nativeId);
   if (!native) return;
@@ -169,41 +234,36 @@ function ensureLootField(field: LootField): {
     native.before(slot);
     slot.append(native);
 
-    const button = page.document.createElement("button");
-    button.type = "button";
-    button.className = "baiak-rate-control";
-    button.innerHTML = '<b class="baiak-rate-value"></b><span class="baiak-rate-period"></span>';
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      selectNextLootMode();
-    });
-    slot.append(button);
+    const value = page.document.createElement("b");
+    value.className = "baiak-rate-value";
+    slot.append(value);
 
     native.classList.add("baiak-rate-native");
-    matchNativeText(native, button.querySelector<HTMLElement>(".baiak-rate-value")!);
-    native.tabIndex = 0;
-    native.setAttribute("role", "button");
-    native.addEventListener("click", () => {
-      selectNextLootMode();
-      button.focus();
-    });
-    native.addEventListener("keydown", event => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      selectNextLootMode();
-      button.focus();
-    });
+    matchNativeText(native, value, true);
+  } else {
+    // Migrate old chip UI if still present
+    slot.querySelector(".baiak-rate-period")?.remove();
+    const oldBtn = slot.querySelector(".baiak-rate-control");
+    if (oldBtn) {
+      const inner = oldBtn.querySelector(".baiak-rate-value");
+      if (inner) slot.append(inner);
+      oldBtn.remove();
+    }
+    if (!slot.querySelector(".baiak-rate-value")) {
+      const value = page.document.createElement("b");
+      value.className = "baiak-rate-value";
+      slot.append(value);
+      matchNativeText(native, value, true);
+    }
   }
 
-  const button = slot.querySelector<HTMLButtonElement>(".baiak-rate-control");
-  const value = button?.querySelector<HTMLElement>(".baiak-rate-value");
-  const period = button?.querySelector<HTMLElement>(".baiak-rate-period");
-  if (!button || !value || !period) return;
+  const value = slot.querySelector<HTMLElement>(".baiak-rate-value");
+  if (!value) return;
 
-  const row = slot.closest(".row");
+  const row = slot.closest<HTMLElement>(".row");
   const label = row?.querySelector<HTMLElement>(":scope > .muted") ?? null;
-  return { native, slot, button, value, period, label };
+  wireRowClick(row, slot, selectNextLootMode);
+  return { native, slot, value, label, row };
 }
 
 function renderSoldLoot(): void {
@@ -211,30 +271,36 @@ function renderSoldLoot(): void {
   const balance = ensureLootField("balance");
   if (!loot || !balance) return;
 
-  const game = soldLoot.mode === "game";
-  const label = modeLabel(soldLoot.mode);
-  const next = modeLabel(soldLoot.mode === "session" ? "game" : "session");
+  const mode = soldLoot.mode;
+  const game = mode === "game";
+  const next = modeLabel(mode === "session" ? "game" : "session");
+  const modeText = modeLabel(mode);
   const supplies = numberFrom("an-supplies") ?? 0;
-  const net = soldLoot.total - supplies;
+  const sold = soldLoot.total;
+  const net = sold - supplies;
+
+  const lootBase = game ? "Loot" : "Loot vendido";
+  const lootTip = game
+    ? `Valor nativo do Hunt Analyzer (drops em valor, vendidos ou não). Clique para ${next}.`
+    : `Gold na carteira: vendas (notify g+mg) + gold drop direto (fx). ` +
+      `Total=${formatGold(sold)}. Clique para ${next}.`;
+  const balTip = game
+    ? `Balance nativo do jogo. Clique para ${next}.`
+    : `Balance = (vendas + gold drop) − supplies. Clique para ${next}.`;
 
   for (const field of [loot, balance]) {
-    field.slot.dataset.mode = soldLoot.mode;
-    if (game) field.native.style.removeProperty("display");
-    else field.native.style.setProperty("display", "none", "important");
-
-    if (field.period.textContent !== label) field.period.textContent = label;
-    const title = `Loot/Balance: ${label}. Clique para ${next}.`;
-    field.button.title = title;
-    field.button.dataset.tip = title;
-    field.button.setAttribute("aria-label", title);
-    field.native.title = game
-      ? `Valor original do jogo (drops). Clique para ${next}.`
-      : `Loot vendido (sell all / auto-sell). Clique para ${next}.`;
-    field.native.dataset.tip = field.native.title;
+    field.slot.dataset.mode = mode;
+    const tip = field === loot ? lootTip : balTip;
+    setGameTip(field.slot, tip);
+    setGameTip(field.row, tip);
+    if (field.row) field.row.setAttribute("aria-label", tip);
   }
 
+  applySideLabel(loot.label, lootBase, modeText, lootTip);
+  applySideLabel(balance.label, "Balance", modeText, balTip);
+
   if (!game) {
-    const lootText = formatGold(soldLoot.total);
+    const lootText = formatGold(sold);
     const balanceText = formatGold(net);
     if (loot.value.textContent !== lootText) loot.value.textContent = lootText;
     if (balance.value.textContent !== balanceText) balance.value.textContent = balanceText;
@@ -244,32 +310,11 @@ function renderSoldLoot(): void {
     balance.value.classList.toggle("bad", net < 0);
     matchNativeText(loot.native, loot.value);
     matchNativeText(balance.native, balance.value);
-
-    if (loot.label) {
-      if (loot.label.textContent !== "Loot vendido") loot.label.textContent = "Loot vendido";
-      loot.label.title = "Gold de vendas reais (sell all / auto-sell). Não conta drop sem espaço.";
-      loot.label.dataset.tip = loot.label.title;
-    }
-    if (balance.label) {
-      balance.label.title = "Balance = loot vendido − supplies.";
-      balance.label.dataset.tip = balance.label.title;
-    }
-  } else {
-    if (loot.label && loot.label.textContent !== "Loot") {
-      loot.label.textContent = "Loot";
-      loot.label.removeAttribute("title");
-      delete loot.label.dataset.tip;
-    }
-    if (balance.label) {
-      balance.label.removeAttribute("title");
-      delete balance.label.dataset.tip;
-    }
   }
 }
 
 function reconcileSoldLootSession(): void {
   const elapsed = sessionMs("an-session");
-  // Hunt reset / new session: timer went backwards or restarted.
   if (elapsed + 2_000 < soldLoot.lastSessionMs || (elapsed === 0 && soldLoot.lastSessionMs > 5_000)) {
     resetSoldLoot(elapsed);
     renderSoldLoot();
@@ -277,19 +322,32 @@ function reconcileSoldLootSession(): void {
   }
   if (soldLoot.lastSessionMs !== elapsed) {
     soldLoot.lastSessionMs = elapsed;
-    // Throttled — do not hit localStorage every tick.
     persistSoldLoot(false);
   }
 }
 
+/**
+ * Hunt reset opens #confirm-modal first; only #confirm-yes runs the real clear.
+ * Do NOT reset sold loot on #hunt-reset click alone.
+ */
 function wireSoldLootReset(): void {
+  // Capture phase: read modal body before the game's #confirm-yes handler hides it.
   page.document.addEventListener(
     "click",
     event => {
       const target = event.target as Element | null;
-      if (!target?.closest?.("#hunt-reset")) return;
+      if (!target?.closest?.("#confirm-yes")) return;
+
+      const body = (page.document.getElementById("confirm-modal-body")?.textContent ?? "").trim();
+      // Hunt Analyzer confirm is the special multi-analyser message.
+      const isHuntReset =
+        /Hunt Analyzer/i.test(body) ||
+        /Todos os analysers/i.test(body) ||
+        /Every analyser \(loot, supply and damage\)/i.test(body);
+      if (!isHuntReset) return;
+
       resetSoldLoot(0);
-      // Let the game clear the panel, then re-apply our values if in SESS mode.
+      // After the game clears the panel, re-apply SESS values if needed.
       page.setTimeout(renderSoldLoot, 0);
       page.setTimeout(renderSoldLoot, 100);
     },
@@ -297,12 +355,19 @@ function wireSoldLootReset(): void {
   );
 }
 
-function metric(key: MetricKey, totalId: string, sessionId: string, outputId: string): Metric {
+function metric(
+  key: MetricKey,
+  totalId: string,
+  sessionId: string,
+  outputId: string,
+  baseLabel: string
+): Metric {
   return {
     key,
     totalId,
     sessionId,
     outputId,
+    baseLabel,
     mode: validMode(saved[key]),
     lastSessionMs: 0,
     sessionSeenAt: 0,
@@ -349,24 +414,18 @@ function reconcile(metric: Metric, now: number): void {
   metric.sessionSeenAt = now;
 }
 
-function modeLabel(mode: RateMode): string {
-  return mode === "session" ? "SESS" : "JOGO";
-}
-
 function selectNext(metric: Metric): void {
   metric.mode = metric.mode === "session" ? "game" : "session";
-  page.localStorage.setItem(
-    MODE_STORAGE,
-    JSON.stringify({ xp: xp.mode, gold: gold.mode, loot: soldLoot.mode })
-  );
+  persistAllModes();
   render(metric, Date.now());
 }
 
 /** Copy font styles once — getComputedStyle every tick was a major layout thrash source. */
 function matchNativeText(native: HTMLElement, value: HTMLElement, force = false): void {
   if (!force && value.dataset.baiakStyled === "1") {
-    // Still sync utility classes (good/bad) without re-reading computed styles.
-    const extras = [...native.classList].filter(name => name !== "baiak-rate-native");
+    const extras = [...native.classList].filter(
+      name => name !== "baiak-rate-native" && name !== "baiak-rate-value"
+    );
     const next = ["baiak-rate-value", ...extras].join(" ");
     if (value.className !== next) value.className = next;
     return;
@@ -375,6 +434,7 @@ function matchNativeText(native: HTMLElement, value: HTMLElement, force = false)
   for (const property of TEXT_PROPERTIES) {
     value.style.setProperty(property, style.getPropertyValue(property));
   }
+  // Size bump applied via CSS .baiak-rate-value { font-size: 1.12em }
   value.className = [
     "baiak-rate-value",
     ...[...native.classList].filter(name => name !== "baiak-rate-native")
@@ -382,13 +442,7 @@ function matchNativeText(native: HTMLElement, value: HTMLElement, force = false)
   value.dataset.baiakStyled = "1";
 }
 
-function ensureControl(metric: Metric): {
-  native: HTMLElement;
-  slot: HTMLElement;
-  button: HTMLButtonElement;
-  value: HTMLElement;
-  period: HTMLElement;
-} | undefined {
+function ensureControl(metric: Metric): RateControl | undefined {
   const native = page.document.getElementById(metric.outputId);
   if (!native) return;
 
@@ -400,48 +454,43 @@ function ensureControl(metric: Metric): {
     native.before(slot);
     slot.append(native);
 
-    const button = page.document.createElement("button");
-    button.type = "button";
-    button.className = "baiak-rate-control";
-    button.innerHTML = '<b class="baiak-rate-value"></b><span class="baiak-rate-period"></span>';
-    button.addEventListener("click", event => {
-      event.preventDefault();
-      event.stopPropagation();
-      selectNext(metric);
-    });
-    slot.append(button);
+    const value = page.document.createElement("b");
+    value.className = "baiak-rate-value";
+    slot.append(value);
 
     native.classList.add("baiak-rate-native");
-    matchNativeText(native, button.querySelector<HTMLElement>(".baiak-rate-value")!);
-    native.tabIndex = 0;
-    native.setAttribute("role", "button");
-    native.addEventListener("click", () => {
-      selectNext(metric);
-      button.focus();
-    });
-    native.addEventListener("keydown", event => {
-      if (event.key !== "Enter" && event.key !== " ") return;
-      event.preventDefault();
-      selectNext(metric);
-      button.focus();
-    });
+    matchNativeText(native, value, true);
+  } else {
+    slot.querySelector(".baiak-rate-period")?.remove();
+    const oldBtn = slot.querySelector(".baiak-rate-control");
+    if (oldBtn) {
+      const inner = oldBtn.querySelector(".baiak-rate-value");
+      if (inner) slot.append(inner);
+      oldBtn.remove();
+    }
+    if (!slot.querySelector(".baiak-rate-value")) {
+      const value = page.document.createElement("b");
+      value.className = "baiak-rate-value";
+      slot.append(value);
+      matchNativeText(native, value, true);
+    }
   }
 
-  const button = slot.querySelector<HTMLButtonElement>(".baiak-rate-control");
-  const value = button?.querySelector<HTMLElement>(".baiak-rate-value");
-  const period = button?.querySelector<HTMLElement>(".baiak-rate-period");
-  if (!button || !value || !period) return;
-  return { native, slot, button, value, period };
+  const value = slot.querySelector<HTMLElement>(".baiak-rate-value");
+  if (!value) return;
+
+  const row = slot.closest<HTMLElement>(".row");
+  const label = row?.querySelector<HTMLElement>(":scope > .muted") ?? null;
+  wireRowClick(row, slot, () => selectNext(metric));
+  return { native, slot, value, label, row };
 }
 
 function render(metric: Metric, now: number): void {
   const control = ensureControl(metric);
   if (!control) return;
-  const { native, slot, button, value, period } = control;
+  const { native, slot, value, label, row } = control;
   const game = metric.mode === "game";
   slot.dataset.mode = metric.mode;
-  if (game) native.style.removeProperty("display");
-  else native.style.setProperty("display", "none", "important");
 
   if (!game) {
     const elapsed = metric.lastSessionMs + Math.max(0, now - metric.sessionSeenAt);
@@ -450,29 +499,32 @@ function render(metric: Metric, now: number): void {
       metric.lastDomTotal + metric.pendingNetwork
     )).toLocaleString("pt-BR");
     if (value.textContent !== text) value.textContent = text;
+    matchNativeText(native, value);
   }
 
-  const label = modeLabel(metric.mode);
-  if (period.textContent !== label) period.textContent = label;
   const next = modeLabel(metric.mode === "session" ? "game" : "session");
-  const title = `${metric.key === "xp" ? "XP/h" : "Gold/h"}: ${label}. Clique para ${next}.`;
-  button.title = title;
-  button.dataset.tip = title;
-  button.setAttribute("aria-label", title);
-  native.title = `Valor original do jogo. Clique para ${next}.`;
-  native.dataset.tip = native.title;
+  const tip = `${metric.baseLabel}: ${modeLabel(metric.mode)}. Clique em qualquer lugar da linha para ${next}.`;
+  applySideLabel(label, metric.baseLabel, modeLabel(metric.mode), tip);
+  setGameTip(slot, tip);
+  setGameTip(row, tip);
+  if (row) row.setAttribute("aria-label", tip);
 }
 
 function startRates(): void {
   onGamePacket((bytes, receivedAt) => {
-    // Skip ~99% of combat packets before any msgpack walk.
     if (!isInterestingRatePacket(bytes)) return;
 
+    // Pouch sells (items/materials) — notify text with g / mg.
     const sold = parseSoldGold(bytes);
-    if (sold !== undefined) addSoldLoot(sold);
+    if (sold !== undefined) addSoldLoot(sold, true);
 
     const event = parseFx(bytes);
     if (!event) return;
+
+    // Direct gold coin drops go straight to wallet (no sell notify).
+    // Same fx.t=gold used for Gold/h — count once into loot vendido.
+    if (event.type === "gold") addSoldLoot(event.amount, false);
+
     const metric = event.type === "xp" ? xp : gold;
     metric.pendingNetwork += event.amount;
     metric.sessionSeenAt ||= receivedAt;
@@ -484,7 +536,6 @@ function startRates(): void {
   });
   page.addEventListener("pagehide", () => flushSoldLootIfDirty());
 
-  // 1s is enough for rates; 500ms + localStorage + getComputedStyle was janky in combat.
   page.setInterval(() => {
     const now = Date.now();
     reconcile(xp, now);
@@ -510,8 +561,7 @@ function startIndependentPanels(): void {
 
     const collapsed = panel.classList.toggle("min");
     button.textContent = collapsed ? "+" : "\u2212";
-    button.title = collapsed ? "Expandir" : "Minimizar";
-    button.dataset.tip = button.title;
+    setGameTip(button, collapsed ? "Expandir" : "Minimizar");
   }, true);
 }
 

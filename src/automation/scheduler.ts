@@ -18,6 +18,8 @@ declare const unsafeWindow: Window & typeof globalThis;
 
 const SUPPLY_POTION_SELL_DELAY_MS = 450;
 const TICK_MS = 250;
+/** Min gap between auto-sell attempts while pouch stays above threshold. */
+const SELL_ATTEMPT_GAP_MS = 2_000;
 
 type SupplyPotionJob = { movedAt: number; sold: boolean };
 
@@ -40,7 +42,8 @@ function supplyPotionGuardsPass(
 /** Unified automation tick: hunt → transfer → sell → open glooth → supply potions. */
 export function startScheduler(api: SchedulerApi): void {
   const page = unsafeWindow;
-  let sellLatched = false;
+  let sellInFlight = false;
+  let lastSellAttemptAt = 0;
   let openLatched = false;
   let supplyPotionJob: SupplyPotionJob | null = null;
 
@@ -48,7 +51,7 @@ export function startScheduler(api: SchedulerApi): void {
     const settings = api.getSettings();
     const doc = page.document;
     const navBusy = isHuntEntering();
-    const sellBusy = isSelling() || isTransferring();
+    const sellBusy = isSelling() || isTransferring() || sellInFlight;
 
     if (
       settings.autoHunt &&
@@ -65,29 +68,30 @@ export function startScheduler(api: SchedulerApi): void {
     const state = readInventory(doc);
     if (!state) return;
 
-    if (settings.autoTransfer && !isTransferring() && !navBusy && !isSelling()) {
+    if (settings.autoTransfer && !isTransferring() && !navBusy && !isSelling() && !sellInFlight) {
       void runAutoTransfer(settings, doc);
     }
 
     const fillPct =
       state.capacity > 0 ? (state.current / state.capacity) * 100 : 0;
-    const sellReady = fillPct >= settings.autoSellThresholdPct;
-    if (!settings.autoSell || !sellReady) sellLatched = false;
+    const sellReady = fillPct + 1e-9 >= settings.autoSellThresholdPct;
+    const now = Date.now();
+
     if (
       settings.autoSell &&
       sellReady &&
-      !sellLatched &&
+      state.current > 0 &&
       !sellBusy &&
-      !navBusy
+      !navBusy &&
+      now - lastSellAttemptAt >= SELL_ATTEMPT_GAP_MS
     ) {
-      // Transfer marked rarities first (even if transfer loop is on cooldown), then sell.
-      // Start when sell is free, or when there are marked rarities still to rescue.
+      // Transfer marked rarities first (force), then sell when button is free.
       const needTransfer = hasMarkedTransferItems(settings, doc);
       if (state.canSell || needTransfer) {
-        sellLatched = true;
-        void sellAllRespectingTransfer(settings, doc).then(ok => {
-          // Stay latched only if sell was sent or pouch emptied; retry when cooldown ends.
-          if (!ok) sellLatched = false;
+        sellInFlight = true;
+        lastSellAttemptAt = now;
+        void sellAllRespectingTransfer(settings, doc).finally(() => {
+          sellInFlight = false;
         });
       }
     }
@@ -126,11 +130,14 @@ export function startScheduler(api: SchedulerApi): void {
         return;
       }
       supplyPotionJob.sold = true;
-      sellLatched = true;
-      void sellAllRespectingTransfer(settings, doc).then(ok => {
-        if (!ok && supplyPotionJob) {
+      sellInFlight = true;
+      lastSellAttemptAt = Date.now();
+      void sellAllRespectingTransfer(settings, doc).finally(() => {
+        sellInFlight = false;
+        // Retry sell phase if pouch still has items after this attempt.
+        const after = readInventory(doc);
+        if (supplyPotionJob && after && after.current > 0) {
           supplyPotionJob.sold = false;
-          sellLatched = false;
         }
       });
       return;

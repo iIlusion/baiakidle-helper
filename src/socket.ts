@@ -219,28 +219,29 @@ export function gameplayConnected(): boolean {
 }
 
 /**
- * Chat Colyseus room (rt3…). Used for aucshare / market channel, not hunt combat.
+ * Chat Colyseus room (rt3 / matchmake chat). Used for aucshare — never hunt combat WS.
  */
 function chatSocket(): WebSocket | undefined {
   const open = [...sockets.entries()]
     .filter(([, socket]) => socket.readyState === 1)
     .map(([url, socket]) => ({ url, socket, role: roles.get(socket) }));
 
+  // 1) Explicitly classified chat room
   const chat = open
     .filter(entry => entry.role?.chat)
     .sort((a, b) => (b.role?.messages ?? 0) - (a.role?.messages ?? 0));
   if (chat[0]) return chat[0].socket;
 
-  // Fallback: non-gameplay open room (usually chat on rt3).
+  // 2) URL heuristics (chat matchmake / rt3) before any other leftover socket
+  const byUrl = open.find(entry => /rt3\.|\/chat|joinOrCreate\/chat/i.test(entry.url));
+  if (byUrl) return byUrl.socket;
+
+  // 3) Non-gameplay leftover (if any)
   const gameplay = gameplaySocket();
   const other = open
     .filter(entry => entry.socket !== gameplay && !entry.role?.chat)
     .sort((a, b) => (b.role?.messages ?? 0) - (a.role?.messages ?? 0));
-  // Prefer sockets that already look like chat hosts
-  const rtChat = other.find(entry => /rt3\.|\/chat/i.test(entry.url));
-  if (rtChat) return rtChat.socket;
-  if (other[0]) return other[0].socket;
-  return undefined;
+  return other[0]?.socket;
 }
 
 export function chatConnected(): boolean {
