@@ -1,0 +1,772 @@
+[
+  {
+    "id": "shadowpelt",
+    "name": "Shadowpelt",
+    "minLevel": 5,
+    "bossKey": "shadowpelt",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_blazing_rose",
+    "name": "The Blazing Rose",
+    "minLevel": 5,
+    "bossKey": "the_blazing_rose",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "bloodback",
+    "name": "Bloodback",
+    "minLevel": 15,
+    "bossKey": "bloodback",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "darkfang",
+    "name": "Darkfang",
+    "minLevel": 15,
+    "bossKey": "darkfang",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_diamond_blossom",
+    "name": "The Diamond Blossom",
+    "minLevel": 15,
+    "bossKey": "the_diamond_blossom",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_lily_of_night",
+    "name": "The Lily of Night",
+    "minLevel": 15,
+    "bossKey": "the_lily_of_night",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "black_vixen",
+    "name": "Black Vixen",
+    "minLevel": 20,
+    "bossKey": "black_vixen",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "sharpclaw",
+    "name": "Sharpclaw",
+    "minLevel": 20,
+    "bossKey": "sharpclaw",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "leiden",
+    "name": "Leiden",
+    "minLevel": 25,
+    "bossKey": "leiden",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "utua_stone_sting",
+    "name": "Utua Stone Sting",
+    "minLevel": 35,
+    "bossKey": "utua_stone_sting",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "amenef_the_burning",
+    "name": "Amenef the Burning",
+    "minLevel": 50,
+    "bossKey": "amenef_the_burning",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "brokul",
+    "name": "Brokul",
+    "minLevel": 50,
+    "bossKey": "brokul",
+    "rarity": "archfoe",
+    "summons": [
+      "neutral_deepling_warrior"
+    ],
+    "summonCount": 5
+  },
+  {
+    "id": "solid_frozen_horror",
+    "name": "Solid Frozen Horror",
+    "minLevel": 50,
+    "bossKey": "solid_frozen_horror",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "ahau",
+    "name": "Ahau",
+    "minLevel": 60,
+    "bossKey": "ahau",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "irgix_the_flimsy",
+    "name": "Irgix The Flimsy",
+    "minLevel": 60,
+    "bossKey": "irgix_the_flimsy",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "kusuma",
+    "name": "Kusuma",
+    "minLevel": 60,
+    "bossKey": "kusuma",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "tanjis",
+    "name": "Tanjis",
+    "minLevel": 60,
+    "bossKey": "tanjis",
+    "rarity": "bane",
+    "summons": []
+  },
+  {
+    "id": "unaz_the_mean",
+    "name": "Unaz the Mean",
+    "minLevel": 60,
+    "bossKey": "unaz_the_mean",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "vok_the_freakish",
+    "name": "Vok the Freakish",
+    "minLevel": 60,
+    "bossKey": "vok_the_freakish",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "brain_head",
+    "name": "Brain Head",
+    "minLevel": 70,
+    "bossKey": "brain_head",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "neferi_the_spy",
+    "name": "Neferi the Spy",
+    "minLevel": 70,
+    "bossKey": "neferi_the_spy",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "sister_hetai",
+    "name": "Sister Hetai",
+    "minLevel": 70,
+    "bossKey": "sister_hetai",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "dragonking_zyrtarch",
+    "name": "Dragonking Zyrtarch",
+    "minLevel": 80,
+    "bossKey": "dragonking_zyrtarch",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "foreshock",
+    "name": "Foreshock",
+    "minLevel": 80,
+    "bossKey": "foreshock",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "lloyd",
+    "name": "Lloyd",
+    "minLevel": 80,
+    "bossKey": "lloyd",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "mounted_thorn_knight",
+    "name": "Mounted Thorn Knight",
+    "minLevel": 80,
+    "bossKey": "mounted_thorn_knight",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "scarlett",
+    "name": "Scarlett Etzel",
+    "minLevel": 80,
+    "bossKey": "scarlett_etzel",
+    "rarity": "bane",
+    "summons": []
+  },
+  {
+    "id": "sir_nictros",
+    "name": "Sir Nictros",
+    "minLevel": 80,
+    "bossKey": "sir_nictros",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_time_guardian",
+    "name": "The Time Guardian",
+    "minLevel": 80,
+    "bossKey": "the_time_guardian",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "drume",
+    "name": "Drume",
+    "minLevel": 90,
+    "bossKey": "drume",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "megasylvan_yselda",
+    "name": "Megasylvan Yselda",
+    "minLevel": 90,
+    "bossKey": "megasylvan_yselda",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "obujos",
+    "name": "Obujos",
+    "minLevel": 90,
+    "bossKey": "obujos",
+    "rarity": "bane",
+    "summons": []
+  },
+  {
+    "id": "timira_the_many_headed",
+    "name": "Timira the Many-Headed",
+    "minLevel": 90,
+    "bossKey": "timira_the_many_headed",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "vladrukh",
+    "name": "Vladrukh",
+    "minLevel": 90,
+    "bossKey": "vladrukh",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "anomaly",
+    "name": "Anomaly",
+    "minLevel": 100,
+    "bossKey": "anomaly",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "duke_krule",
+    "name": "Duke Krule",
+    "minLevel": 100,
+    "bossKey": "duke_krule",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "faceless_bane",
+    "name": "Faceless Bane",
+    "minLevel": 100,
+    "bossKey": "faceless_bane",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "oberon",
+    "name": "Grand Master Oberon",
+    "minLevel": 100,
+    "bossKey": "grand_master_oberon",
+    "rarity": "archfoe",
+    "summons": [
+      "falcon_knight",
+      "falcon_paladin"
+    ],
+    "summonCount": 4
+  },
+  {
+    "id": "lady_tenebris",
+    "name": "Lady Tenebris",
+    "minLevel": 100,
+    "bossKey": "lady_tenebris",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "ratmiral",
+    "name": "Ratmiral Blackwhiskers",
+    "minLevel": 100,
+    "bossKey": "ratmiral",
+    "rarity": "archfoe",
+    "summons": [
+      "elite_pirat"
+    ],
+    "summonCount": 4
+  },
+  {
+    "id": "rupture",
+    "name": "Rupture",
+    "minLevel": 100,
+    "bossKey": "rupture",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "alptramun",
+    "name": "Alptramun",
+    "minLevel": 110,
+    "bossKey": "alptramun",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "count_vlarkorth",
+    "name": "Count Vlarkorth",
+    "minLevel": 110,
+    "bossKey": "count_vlarkorth",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "earl_osam",
+    "name": "Earl Osam",
+    "minLevel": 110,
+    "bossKey": "earl_osam",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "ghulosh",
+    "name": "Ghulosh",
+    "minLevel": 110,
+    "bossKey": "ghulosh",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "lokathmor",
+    "name": "Lokathmor",
+    "minLevel": 110,
+    "bossKey": "lokathmor",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "lord_azaram",
+    "name": "Lord Azaram",
+    "minLevel": 110,
+    "bossKey": "lord_azaram",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "mazzinor",
+    "name": "Mazzinor",
+    "minLevel": 110,
+    "bossKey": "mazzinor",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_brainstealer",
+    "name": "The Brainstealer",
+    "minLevel": 110,
+    "bossKey": "the_brainstealer",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_dread_maiden",
+    "name": "The Dread Maiden",
+    "minLevel": 110,
+    "bossKey": "the_dread_maiden",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "jaul",
+    "name": "Jaul",
+    "minLevel": 120,
+    "bossKey": "jaul",
+    "rarity": "bane",
+    "summons": []
+  },
+  {
+    "id": "arbaziloth",
+    "name": "Arbaziloth",
+    "minLevel": 130,
+    "bossKey": "arbaziloth",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "court_warlock",
+    "name": "Court Warlock",
+    "minLevel": 130,
+    "bossKey": "court_warlock",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "dragon_pack",
+    "name": "Dragon Pack",
+    "minLevel": 130,
+    "bossKey": "dragon_pack",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "gorzindel",
+    "name": "Gorzindel",
+    "minLevel": 130,
+    "bossKey": "gorzindel",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "outburst",
+    "name": "Outburst",
+    "minLevel": 130,
+    "bossKey": "outburst",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "razzagorn",
+    "name": "Razzagorn",
+    "minLevel": 130,
+    "bossKey": "razzagorn",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "shulgrax",
+    "name": "Shulgrax",
+    "minLevel": 130,
+    "bossKey": "shulgrax",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "tarbaz",
+    "name": "Tarbaz",
+    "minLevel": 130,
+    "bossKey": "tarbaz",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_monster",
+    "name": "The Monster",
+    "minLevel": 130,
+    "bossKey": "the_monster",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "lord_retro",
+    "name": "Lord Retro",
+    "minLevel": 140,
+    "bossKey": "lord_retro",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "magma_bubble",
+    "name": "Magma Bubble",
+    "minLevel": 140,
+    "bossKey": "magma_bubble",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "plagirath",
+    "name": "Plagirath",
+    "minLevel": 140,
+    "bossKey": "plagirath",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "prince_drazzak",
+    "name": "Prince Drazzak",
+    "minLevel": 140,
+    "bossKey": "prince_drazzak",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "ragiaz",
+    "name": "Ragiaz",
+    "minLevel": 140,
+    "bossKey": "ragiaz",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "urmahlullu_the_immaculate",
+    "name": "Urmahlullu the Immaculate",
+    "minLevel": 140,
+    "bossKey": "urmahlullu_the_immaculate",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_fear_feaster",
+    "name": "The Fear Feaster",
+    "minLevel": 150,
+    "bossKey": "the_fear_feaster",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_pale_worm",
+    "name": "The Pale Worm",
+    "minLevel": 150,
+    "bossKey": "the_pale_worm",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_primal_menace",
+    "name": "The Primal Menace",
+    "minLevel": 150,
+    "bossKey": "the_primal_menace",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_rootkraken",
+    "name": "The Rootkraken",
+    "minLevel": 150,
+    "bossKey": "the_rootkraken",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_unwelcome",
+    "name": "The Unwelcome",
+    "minLevel": 150,
+    "bossKey": "the_unwelcome",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "eradicator",
+    "name": "Eradicator",
+    "minLevel": 160,
+    "bossKey": "eradicator",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "king_zelos",
+    "name": "King Zelos",
+    "minLevel": 160,
+    "bossKey": "king_zelos",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "world_devourer",
+    "name": "World Devourer",
+    "minLevel": 160,
+    "bossKey": "world_devourer",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "the_scourge_of_oblivion",
+    "name": "The Scourge of Oblivion",
+    "minLevel": 180,
+    "bossKey": "the_scourge_of_oblivion",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "goshnars_cruelty",
+    "name": "Goshnar's Cruelty",
+    "minLevel": 190,
+    "bossKey": "goshnars_cruelty",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "goshnars_greed",
+    "name": "Goshnar's Greed",
+    "minLevel": 200,
+    "bossKey": "goshnars_greed",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_last_lore_keeper",
+    "name": "The Last Lore Keeper",
+    "minLevel": 200,
+    "bossKey": "the_last_lore_keeper",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "ichgahal",
+    "name": "Ichgahal",
+    "minLevel": 210,
+    "bossKey": "ichgahal",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "mitmah_vanguard",
+    "name": "Mitmah Vanguard",
+    "minLevel": 210,
+    "bossKey": "mitmah_vanguard",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "nightmare_beast",
+    "name": "The Nightmare Beast",
+    "minLevel": 210,
+    "bossKey": "nightmare_beast",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "goshnars_hatred",
+    "name": "Goshnar's Hatred",
+    "minLevel": 220,
+    "bossKey": "goshnars_hatred",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "goshnars_malice",
+    "name": "Goshnar's Malice",
+    "minLevel": 220,
+    "bossKey": "goshnars_malice",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "goshnars_spite",
+    "name": "Goshnar's Spite",
+    "minLevel": 220,
+    "bossKey": "goshnars_spite",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "bonelords_phylactery",
+    "name": "Bonelord's Phylactery",
+    "minLevel": 230,
+    "bossKey": "bonelords_phylactery",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "fatal_bug",
+    "name": "Fatal Bug",
+    "minLevel": 230,
+    "bossKey": "fatal_bug",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "ferumbras_mortal_shell",
+    "name": "Ferumbras Mortal Shell",
+    "minLevel": 230,
+    "bossKey": "ferumbras_mortal_shell",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "ice_horror",
+    "name": "Ice Horror",
+    "minLevel": 230,
+    "bossKey": "ice_horror",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "the_gravedigger",
+    "name": "The Gravedigger",
+    "minLevel": 230,
+    "bossKey": "the_gravedigger",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "chagorz",
+    "name": "Chagorz",
+    "minLevel": 240,
+    "bossKey": "chagorz",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "eldritch_dragon_lord",
+    "name": "Eldritch Dragon Lord",
+    "minLevel": 240,
+    "bossKey": "eldritch_dragon_lord",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "goshnars_megalomania",
+    "name": "Goshnar's Megalomania",
+    "minLevel": 240,
+    "bossKey": "goshnars_megalomania",
+    "rarity": "nemesis",
+    "summons": []
+  },
+  {
+    "id": "murcion",
+    "name": "Murcion",
+    "minLevel": 240,
+    "bossKey": "murcion",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "vemiath",
+    "name": "Vemiath",
+    "minLevel": 240,
+    "bossKey": "vemiath",
+    "rarity": "archfoe",
+    "summons": []
+  },
+  {
+    "id": "bakragore",
+    "name": "Bakragore",
+    "minLevel": 340,
+    "bossKey": "bakragore",
+    "rarity": "nemesis",
+    "summons": []
+  }
+]

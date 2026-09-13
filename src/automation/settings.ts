@@ -1,3 +1,5 @@
+import { bossById, parseAutoBossIds } from "../data/bosses";
+
 export type TransferTiers = {
   rare: boolean;
   epic: boolean;
@@ -53,6 +55,19 @@ export type Settings = {
    * Server enforces ~4 minutes; default matches that. User may increase.
    */
   autoMarketAnnounceIntervalMs: number;
+  /** Extension-owned ordered boss queue; native boss automation is never used. */
+  autoBoss: boolean;
+  autoBossOnReset: boolean;
+  autoBossIds: string[];
+  autoBossIndex: number;
+  autoBossDay: string;
+  autoBossStartedAt: number;
+  autoBossFighting: string;
+  autoBossKillsAtEnter: number;
+  autoBossLeftAt: number;
+  autoBossLastId: string;
+  autoBossLastResult: "" | "win" | "lose";
+  autoBossResults: Record<string, "win" | "lose">;
 };
 
 export const STORAGE_KEY = "baiakidle-helper-v1";
@@ -88,7 +103,19 @@ export const defaults: Settings = {
   reduceVfx: false,
   autoMarketAnnounce: false,
   /** Native server gap is ~4 min between any aucshare. */
-  autoMarketAnnounceIntervalMs: 4 * 60 * 1_000
+  autoMarketAnnounceIntervalMs: 4 * 60 * 1_000,
+  autoBoss: false,
+  autoBossOnReset: false,
+  autoBossIds: [],
+  autoBossIndex: 0,
+  autoBossDay: "",
+  autoBossStartedAt: 0,
+  autoBossFighting: "",
+  autoBossKillsAtEnter: 0,
+  autoBossLeftAt: 0,
+  autoBossLastId: "",
+  autoBossLastResult: "",
+  autoBossResults: {}
 };
 
 function asBool(value: unknown, fallback: boolean): boolean {
@@ -103,6 +130,27 @@ function asTransferTiers(value: unknown): TransferTiers {
     legendary: asBool(raw.legendary, defaults.transferTiers.legendary),
     mythical: asBool(raw.mythical, defaults.transferTiers.mythical)
   };
+}
+
+function asNonNegativeNumber(value: unknown, fallback: number): number {
+  return typeof value === "number" && Number.isFinite(value) && value >= 0
+    ? Math.round(value)
+    : fallback;
+}
+
+function asAutoBossResult(value: unknown): "" | "win" | "lose" {
+  return value === "win" || value === "lose" ? value : "";
+}
+
+function asAutoBossResults(value: unknown): Record<string, "win" | "lose"> {
+  if (!value || typeof value !== "object") return {};
+  const result: Record<string, "win" | "lose"> = {};
+  for (const [id, status] of Object.entries(value)) {
+    if (status !== "win" && status !== "lose") continue;
+    const boss = bossById(id);
+    if (boss) result[boss.id] = status;
+  }
+  return result;
 }
 
 export function loadSettings(
@@ -154,7 +202,22 @@ export function loadSettings(
       autoMarketAnnounce: asBool(raw.autoMarketAnnounce, defaults.autoMarketAnnounce),
       autoMarketAnnounceIntervalMs: clampMarketAnnounceIntervalMs(
         raw.autoMarketAnnounceIntervalMs
-      )
+      ),
+      autoBoss: asBool(raw.autoBoss, defaults.autoBoss),
+      autoBossOnReset: asBool(raw.autoBossOnReset, defaults.autoBossOnReset),
+      autoBossIds: parseAutoBossIds(raw.autoBossIds),
+      autoBossIndex: Math.max(
+        0,
+        Math.min(parseAutoBossIds(raw.autoBossIds).length, asNonNegativeNumber(raw.autoBossIndex, 0))
+      ),
+      autoBossDay: typeof raw.autoBossDay === "string" ? raw.autoBossDay : defaults.autoBossDay,
+      autoBossStartedAt: asNonNegativeNumber(raw.autoBossStartedAt, defaults.autoBossStartedAt),
+      autoBossFighting: typeof raw.autoBossFighting === "string" ? raw.autoBossFighting : defaults.autoBossFighting,
+      autoBossKillsAtEnter: asNonNegativeNumber(raw.autoBossKillsAtEnter, defaults.autoBossKillsAtEnter),
+      autoBossLeftAt: asNonNegativeNumber(raw.autoBossLeftAt, defaults.autoBossLeftAt),
+      autoBossLastId: typeof raw.autoBossLastId === "string" ? raw.autoBossLastId : defaults.autoBossLastId,
+      autoBossLastResult: asAutoBossResult(raw.autoBossLastResult),
+      autoBossResults: asAutoBossResults(raw.autoBossResults)
     };
   } catch {
     return { ...defaults, transferTiers: { ...defaults.transferTiers } };
