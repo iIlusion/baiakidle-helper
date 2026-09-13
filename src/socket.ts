@@ -9,7 +9,12 @@ const sockets = new Map<string, WebSocket>();
 const roles = new Map<WebSocket, SocketRole>();
 const seen = new WeakSet<WebSocket>();
 const filteredSockets = new WeakSet<WebSocket>();
-const packetListeners = new Set<(bytes: Uint8Array, receivedAt: number) => void>();
+export type GamePacketListener = (
+  bytes: Uint8Array,
+  receivedAt: number,
+  socket: WebSocket
+) => void;
+const packetListeners = new Set<GamePacketListener>();
 const outgoingListeners = new Set<(bytes: Uint8Array, url: string) => void>();
 
 /** When true, game/Pixi never sees `fx` room packets (particles, floating damage art). */
@@ -59,7 +64,7 @@ function dispatchPacket(socket: WebSocket, value: Uint8Array, receivedAt: number
   const role = roles.get(socket);
   if (role) observeSocket(role, value);
   if (packetListeners.size === 0) return;
-  for (const listener of packetListeners) listener(value, receivedAt);
+  for (const listener of packetListeners) listener(value, receivedAt, socket);
 }
 
 function receive(socket: WebSocket, data: SocketData): void {
@@ -264,7 +269,7 @@ export function sendChatPacket(base64: string): boolean {
 }
 
 export function onGamePacket(
-  listener: (bytes: Uint8Array, receivedAt: number) => void
+  listener: GamePacketListener
 ): () => void {
   packetListeners.add(listener);
   return () => packetListeners.delete(listener);
