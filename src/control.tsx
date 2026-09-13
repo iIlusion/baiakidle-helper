@@ -2,7 +2,7 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Switch } from "./components/ui/switch";
-import { gameplayConnected, setReduceVfx } from "./socket";
+import { setReduceVfx } from "./socket";
 import { startAnalyserEnhancements } from "./analyzers";
 import {
   clampAutoSellThresholdPct,
@@ -22,8 +22,11 @@ import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
 import { readAutoBossView, startScheduler } from "./automation/scheduler";
 import { startBossMenuObserver, type BossMenuHosts } from "./automation/boss-menu";
 import { startTeleportProbe } from "./automation/probe";
+import { consumeAnnouncement } from "./automation/announcement";
 import { HUNTS, huntById } from "./data/hunts";
 import { AutoBossPanel } from "./components/AutoBossPanel";
+import { AnnouncementModal, LEVITICUS_SITE_URL } from "./components/AnnouncementModal";
+import { DiscordLink } from "./components/DiscordLink";
 import { LeviticusMark } from "./components/LeviticusMark";
 import { LeviticusTabIcon } from "./components/LeviticusTabIcon";
 import { AutoBossWaveState } from "./components/AutoBossWaveState";
@@ -31,10 +34,10 @@ import styles from "./control.css?inline";
 
 declare const unsafeWindow: Window & typeof globalThis;
 declare const __BAIAKIDLE_DEV__: boolean;
+declare const __LEVITICUS_VERSION__: string;
 
 const page = unsafeWindow;
 const MCP_REPOSITORY = "https://github.com/iIlusion/baiakidle-mcp";
-const DISCORD_SUPPORT = "https://discord.gg/Hy7HqcAgQG";
 const SETTINGS_EVENT = "baiakidle-helper-settings";
 
 type View = "automation" | "development";
@@ -66,27 +69,21 @@ function RadioIcon(): React.JSX.Element {
   );
 }
 
-function ChatIcon(): React.JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-      <path d="M7 8.5h10M7 12h7M5 4h14a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2h-8l-5 3v-3H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z" />
-    </svg>
-  );
-}
-
 type Position = { left: number; top: number };
 
 function ControlMenu(): React.JSX.Element {
   const [open, setOpen] = React.useState(false);
+  const [announcementOpen, setAnnouncementOpen] = React.useState(() => consumeAnnouncement(page.localStorage, __LEVITICUS_VERSION__));
   const [view, setView] = React.useState<View>("automation");
   const [value, setValue] = React.useState(settings);
-  const [gameConnected, setGameConnected] = React.useState(false);
   const [autoBossStatus, setAutoBossStatus] = React.useState(() => readAutoBossView(value));
   const [bridgeConnected, setBridgeConnected] = React.useState(false);
   const [bossMenuHosts, setBossMenuHosts] = React.useState<BossMenuHosts>({ panel: null, state: null });
   const [position, setPosition] = React.useState<Position>({ left: 8, top: 78 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
+
+  const closeAnnouncement = React.useCallback(() => setAnnouncementOpen(false), []);
 
   const updatePosition = React.useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
@@ -123,7 +120,6 @@ function ControlMenu(): React.JSX.Element {
 
   React.useEffect(() => {
     const refresh = () => {
-      setGameConnected(gameplayConnected());
       setAutoBossStatus(readAutoBossView(settings));
       if (__BAIAKIDLE_DEV__) setBridgeConnected(Boolean(mcpBridge()));
     };
@@ -227,6 +223,10 @@ function ControlMenu(): React.JSX.Element {
 
   return (
     <>
+      {announcementOpen && createPortal(
+        <AnnouncementModal onClose={closeAnnouncement} />,
+        page.document.body
+      )}
       <button
         ref={buttonRef}
         id="tab-baiak-control"
@@ -256,9 +256,9 @@ function ControlMenu(): React.JSX.Element {
                 <p>Automação enxuta para sua sessão BaiakIdle</p>
               </div>
             </div>
-            <span className={`baiak-bridge-state${gameConnected ? " connected" : ""}`}>
-              <RadioIcon />{gameConnected ? "Jogo conectado" : "Aguardando hunt"}
-            </span>
+            <div className="baiak-control-head-actions">
+              <DiscordLink />
+            </div>
           </header>
 
           {__BAIAKIDLE_DEV__ && (
@@ -672,15 +672,6 @@ function ControlMenu(): React.JSX.Element {
             <Development bridgeConnected={bridgeConnected} />
           )}
 
-          <footer className="baiak-support">
-            <div className="baiak-support-intro">
-              <span className="baiak-support-icon"><ChatIcon /></span>
-              <span><strong>Suporte &amp; contato</strong><small>Dúvidas, bugs ou sugestões</small></span>
-            </div>
-            <a href={DISCORD_SUPPORT} target="_blank" rel="noreferrer">
-              Entrar no Discord <span aria-hidden="true">↗</span>
-            </a>
-          </footer>
         </div>,
         page.document.body
       )}

@@ -1,6 +1,6 @@
 {
   "name": "leviticus-extension",
-  "version": "1.2.0",
+  "version": "1.2.3",
   "description": "Leviticus Extension — Tampermonkey automation for BaiakIdle.",
   "type": "module",
   "repository": {

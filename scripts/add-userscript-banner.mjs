@@ -11,7 +11,7 @@ const banner = `// ==UserScript==
 // @version ${version}
 // @description Leviticus Extension automation for BaiakIdle.
 // @homepageURL https://github.com/iIlusion/baiakidle-helper
-// @supportURL https://discord.gg/Hy7HqcAgQG
+// @supportURL https://discord.leviticusbot.com
 // @updateURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js
 // @downloadURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js
 ${common}
