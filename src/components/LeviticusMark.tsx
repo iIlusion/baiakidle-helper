@@ -7,7 +7,9 @@ const markPath = /<path\s+d="([^"]+)"/i.exec(markSource)?.[1] ?? "";
 export function LeviticusMark({ className = "" }: { className?: string }): React.JSX.Element {
   return (
     <svg className={className} viewBox="0 0 512 512" fill="currentColor" aria-hidden="true">
-      <path d={markPath} />
+      <g transform="translate(0 512) scale(.1 -.1)">
+        <path d={markPath} />
+      </g>
     </svg>
   );
 }

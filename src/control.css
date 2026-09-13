@@ -78,8 +78,41 @@
   color-scheme: dark;
   font-family: "Manrope Variable", "Segoe UI", sans-serif;
 }
-.leviticus-auto-boss-tab-hidden,
-.leviticus-native-auto-boss-hidden { display: none !important; }
+#boss-modal .leviticus-boss-tab {
+  color: #c5cad5;
+  border-color: transparent;
+  background: transparent;
+}
+#boss-modal .leviticus-boss-tab:hover,
+#boss-modal .leviticus-boss-tab.leviticus-boss-tab-active,
+#boss-modal .leviticus-boss-tab.active {
+  color: #b4a7ff;
+  border-color: rgba(141, 120, 255, .55);
+  background: rgba(141, 120, 255, .12);
+}
+#boss-modal .boss-pane-leviticus { display: none; box-sizing: border-box; width: 100%; padding: 8px; }
+#boss-modal .boss-pane-leviticus.leviticus-boss-pane-active,
+#boss-modal .boss-pane-leviticus.active { display: block; }
+#wave-hdr .leviticus-wave-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  max-width: 210px;
+  margin-left: 8px;
+  padding: 4px 7px;
+  overflow: hidden;
+  color: #b4a7ff;
+  border: 1px solid rgba(141, 120, 255, .35);
+  border-radius: 6px;
+  background: rgba(15, 17, 24, .82);
+  font: 700 9px/1.1 "Manrope Variable", "Segoe UI", sans-serif;
+  vertical-align: middle;
+}
+#wave-hdr .leviticus-wave-state-content { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+#wave-hdr .leviticus-wave-state-content > span { color: #8992a4; }
+#wave-hdr .leviticus-wave-state-content strong { overflow: hidden; color: #b4a7ff; text-overflow: ellipsis; white-space: nowrap; }
+#wave-hdr .leviticus-wave-state-content small { overflow: hidden; color: #8992a4; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
 .baiak-control-head {
   position: sticky;
@@ -281,16 +314,12 @@
 .lev-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .lev-section-heading h3 { margin: 0; color: var(--lev-ink); font-size: 14px; letter-spacing: -.025em; }
 .lev-section-heading p { max-width: 240px; margin: 4px 0 0; color: var(--lev-muted); font-size: 9.5px; line-height: 1.35; }
-.lev-runtime-state { display: inline-flex; align-items: center; gap: 5px; padding-top: 2px; color: var(--lev-muted); font-size: 9px; font-weight: 750; white-space: nowrap; }
-.lev-runtime-state.live { color: var(--lev-cyan); }
-.lev-runtime-state.waiting { color: var(--lev-orange); }
-.lev-runtime-state.success { color: var(--lev-green); }
-.lev-status-dot { width: 6px; height: 6px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 16%, transparent); }
-.lev-boss-runtime { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; overflow: hidden; border: 1px solid var(--lev-line); border-radius: 10px; background: var(--lev-line); }
-.lev-boss-runtime > div { min-width: 0; padding: 8px 9px; background: var(--lev-surface-2); }
-.lev-boss-runtime > div.lev-runtime-current { grid-column: 1 / -1; background: var(--lev-surface-3); }
-.lev-runtime-label { display: block; color: var(--lev-muted); font-size: 8.5px; font-weight: 650; letter-spacing: .03em; }
-.lev-boss-runtime strong { display: block; overflow: hidden; margin-top: 3px; color: var(--lev-ink); font-size: 11px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
+.lev-boss-current-status { display: flex; align-items: center; gap: 7px; margin-top: 10px; padding: 8px 9px; color: var(--lev-muted); border: 1px solid var(--lev-line); border-radius: 8px; background: var(--lev-surface-2); font-size: 9px; }
+.lev-boss-current-status strong { color: var(--lev-ink); font-size: 10px; font-weight: 750; }
+.lev-boss-current-status small { margin-left: auto; overflow: hidden; color: var(--lev-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.lev-boss-current-status.live strong { color: var(--lev-cyan); }
+.lev-boss-current-status.waiting strong { color: var(--lev-orange); }
+.lev-boss-current-status.success strong { color: var(--lev-green); }
 .lev-boss-actions { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .lev-button { min-height: 36px; padding: 0 13px; cursor: pointer; border: 1px solid transparent; border-radius: 8px; font: 750 10px/1 "Manrope Variable", "Segoe UI", sans-serif; }
 .lev-button.primary { color: #0b0918; border-color: var(--lev-violet-bright); background: var(--lev-violet-bright); }
@@ -305,11 +334,13 @@
 .lev-boss-pool > label { display: block; margin-bottom: 6px; color: var(--lev-soft); font-size: 9.5px; font-weight: 700; }
 .lev-boss-pool > input { box-sizing: border-box; width: 100%; min-height: 34px; padding: 0 9px; color: var(--lev-ink); border: 1px solid var(--lev-line-strong); border-radius: 8px; outline: none; background: var(--lev-void); font: 600 10px/1 "Manrope Variable", "Segoe UI", sans-serif; }
 .lev-boss-pool > input::placeholder { color: var(--lev-faint); }
-.lev-boss-results { display: grid; gap: 3px; max-height: 170px; margin-top: 5px; overflow: auto; }
+.lev-boss-results { display: grid; gap: 3px; max-height: 170px; margin: 5px 0 0; padding: 0; overflow: auto; list-style: none; }
+.lev-boss-results li { min-width: 0; }
 .lev-boss-results button { display: flex; align-items: center; justify-content: space-between; gap: 5px; min-height: 34px; padding: 0 8px; cursor: pointer; color: var(--lev-soft); border: 1px solid transparent; border-radius: 7px; background: var(--lev-surface-2); font: 650 9px/1.15 "Manrope Variable", "Segoe UI", sans-serif; text-align: left; }
 .lev-boss-results button:hover { color: var(--lev-ink); border-color: var(--lev-violet); }
 .lev-boss-results small { flex: 0 0 auto; color: var(--lev-muted); font-size: 8px; }
 .lev-empty-line, .lev-empty-queue { color: var(--lev-faint); font-size: 9px; }
+.lev-empty-line { padding: 10px 8px; }
 .lev-queue-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-bottom: 6px; color: var(--lev-soft); font-size: 9.5px; font-weight: 700; }
 .lev-queue-heading small { color: var(--lev-muted); font-size: 8px; font-weight: 600; }
 .lev-boss-queue ol { display: grid; gap: 4px; margin: 0; padding: 0; list-style: none; }
@@ -328,7 +359,6 @@
 .lev-queue-controls button:hover:not(:disabled) { color: var(--lev-violet-bright); border-color: var(--lev-line-strong); background: var(--lev-surface-3); }
 .lev-queue-controls button:disabled { cursor: not-allowed; opacity: .25; }
 .lev-empty-queue { margin: 0; padding: 14px 8px; border: 1px dashed var(--lev-line-strong); border-radius: 8px; text-align: center; }
-.lev-boss-note { margin: 0; color: var(--lev-faint); font-size: 8.5px; line-height: 1.4; }
 
 .baiak-dev { display: grid; gap: 10px; padding: 12px; color: var(--lev-muted); font-size: 10px; line-height: 1.45; }
 .baiak-dev p { margin: 0; }

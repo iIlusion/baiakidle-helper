@@ -10,6 +10,7 @@ describe("LeviticusTabIcon", () => {
 
     expect(svg).not.toBeNull();
     expect(svg?.getAttribute("viewBox")).toBe("0 0 512 512");
+    expect(svg?.querySelector("g")?.getAttribute("transform")).toBe("translate(0 512) scale(.1 -.1)");
     expect(svg?.querySelector("path")?.getAttribute("d")).toBeTruthy();
   });
 });
