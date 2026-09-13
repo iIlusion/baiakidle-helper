@@ -17,7 +17,7 @@ function renderBossModal(className = ""): void {
     '  <div id="boss-modal-body">',
     '    <div class="sp-body">',
     '      <div class="sp-cats">',
-    '        <button class="sp-cat" type="button">Bosses</button>',
+    '        <button class="sp-cat on" type="button">Bosses</button>',
     '        <button class="sp-cat" type="button">Auto Boss</button>',
     '      </div>',
     '      <div class="boss-panes">',
@@ -78,12 +78,27 @@ describe("startBossMenuObserver", () => {
     const observer = startBossMenuObserver(document, () => true, vi.fn());
     const tab = document.getElementById(LEVITICUS_BOSS_TAB_ID);
     const pane = document.getElementById(LEVITICUS_BOSS_PANE_ID);
+    const panes = document.querySelector(".boss-panes");
+    const nativeTab = document.querySelector<HTMLButtonElement>(".sp-cat:not(#" + LEVITICUS_BOSS_TAB_ID + ")");
 
     tab?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
 
     expect(tab?.classList.contains("active")).toBe(true);
+    expect(tab?.classList.contains("on")).toBe(true);
     expect(pane?.classList.contains("active")).toBe(true);
     expect(pane?.getAttribute("aria-hidden")).toBe("false");
+    expect(panes?.classList.contains("leviticus-section-active")).toBe(true);
+    expect(nativeTab?.classList.contains("on")).toBe(false);
+
+    document.querySelector<HTMLButtonElement>(".sp-cat:not(#" + LEVITICUS_BOSS_TAB_ID + ")")?.dispatchEvent(
+      new MouseEvent("click", { bubbles: true })
+    );
+
+    expect(tab?.classList.contains("active")).toBe(false);
+    expect(tab?.classList.contains("on")).toBe(false);
+    expect(pane?.getAttribute("aria-hidden")).toBe("true");
+    expect(panes?.classList.contains("leviticus-section-active")).toBe(false);
+    expect(nativeTab?.classList.contains("on")).toBe(true);
     observer.disconnect();
   });
 

@@ -5,6 +5,7 @@ export const LEVITICUS_BOSS_STATE_ID = "leviticus-wave-state";
 
 const TAB_ACTIVE_CLASS = "leviticus-boss-tab-active";
 const PANE_ACTIVE_CLASS = "leviticus-boss-pane-active";
+const SECTION_ACTIVE_CLASS = "leviticus-section-active";
 
 export type BossMenuHosts = {
   panel: HTMLElement | null;
@@ -71,12 +72,14 @@ export function startBossMenuObserver(
 ): BossMenuObserver {
   let tab: HTMLButtonElement | null = null;
   let pane: HTMLDivElement | null = null;
+  let paneContainer: HTMLElement | null = null;
   let panelHost: HTMLDivElement | null = null;
   let stateHost: HTMLSpanElement | null = null;
   let observedModal: HTMLElement | null = null;
   let modalChildObserver: MutationObserver | null = null;
   let modalAttributeObserver: MutationObserver | null = null;
   let customActive = false;
+  let nativeTabOnState = new Map<HTMLButtonElement, boolean>();
   let lastPanel: HTMLElement | null = null;
   let lastState: HTMLElement | null = null;
   let sync: () => void;
@@ -92,13 +95,23 @@ export function startBossMenuObserver(
     if (!tab || !pane) return;
     tab.classList.toggle(TAB_ACTIVE_CLASS, customActive);
     tab.classList.toggle("active", customActive);
+    tab.classList.toggle("on", customActive);
     tab.setAttribute("aria-selected", String(customActive));
     pane.classList.toggle(PANE_ACTIVE_CLASS, customActive);
     pane.classList.toggle("active", customActive);
     pane.setAttribute("aria-hidden", String(!customActive));
+    paneContainer?.classList.toggle(SECTION_ACTIVE_CLASS, customActive);
+  };
+
+  const restoreNativeTabs = () => {
+    for (const [nativeTab, wasOn] of nativeTabOnState) {
+      if (nativeTab.isConnected) nativeTab.classList.toggle("on", wasOn);
+    }
+    nativeTabOnState = new Map();
   };
 
   const deactivate = () => {
+    restoreNativeTabs();
     customActive = false;
     applyActiveState();
   };
@@ -106,6 +119,13 @@ export function startBossMenuObserver(
   const activate = (event: Event) => {
     event.preventDefault();
     event.stopPropagation();
+    if (!customActive && tab?.parentElement) {
+      nativeTabOnState = new Map(
+        Array.from(tab.parentElement.querySelectorAll<HTMLButtonElement>(".sp-cat:not(#" + LEVITICUS_BOSS_TAB_ID + ")"))
+          .map(nativeTab => [nativeTab, nativeTab.classList.contains("on")] as const)
+      );
+      for (const nativeTab of nativeTabOnState.keys()) nativeTab.classList.remove("on");
+    }
     customActive = true;
     applyActiveState();
   };
@@ -118,10 +138,13 @@ export function startBossMenuObserver(
   };
 
   const removePanelNodes = () => {
+    restoreNativeTabs();
+    paneContainer?.classList.remove(SECTION_ACTIVE_CLASS);
     removeNode(tab);
     removeNode(pane);
     tab = null;
     pane = null;
+    paneContainer = null;
     panelHost = null;
     customActive = false;
   };
@@ -177,6 +200,7 @@ export function startBossMenuObserver(
     const existingPane = panes.querySelector<HTMLDivElement>("#" + LEVITICUS_BOSS_PANE_ID);
     tab = existingTab ?? createTab(doc);
     pane = existingPane ?? createPane(doc);
+    paneContainer = panes;
     if (!existingTab) categories.append(tab);
     if (!existingPane) panes.append(pane);
 

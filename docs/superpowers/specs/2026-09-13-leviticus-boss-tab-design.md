@@ -44,11 +44,11 @@ Clicking `Leviticus` activates only the extension pane and its tab state. Clicki
 
 ## Visual direction
 
-- Base: `#050609` void, `#0f1118` surface, `#151823` raised surface.
-- Text: `#f5f6fa` primary, `#8992a4` muted.
-- Accent: `#8d78ff` violet with `#b4a7ff` for active/focus states.
-- Layout: compact two-column lists on desktop, one column below 540px; left aligned, with a single clear action row underneath.
-- The memorable element is the violet Leviticus tab mark; borders and labels remain quiet so queue state is scannable.
+- The Leviticus pane follows the game's Bosses skin: native palette variables, typography, borders, controls, and spacing.
+- The interaction remains Leviticus-style: a complete catalog on the left, an ordered queue on the right, compact one-boss-per-line cards, and drag-and-drop queue reordering.
+- Every compact card shows the boss sprite when the game has rendered it in the native Bosses catalog; the extension copies that canvas into its own card and does not mount into the native Auto Boss pane.
+- The two lists scroll independently within the existing modal, preserving the game's fixed Bosses window dimensions.
+- The violet Leviticus mark remains the extension's identity in the category navigation; the pane itself stays visually native to the game.
 
 ## Tests
 

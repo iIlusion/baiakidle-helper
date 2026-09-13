@@ -1,8 +1,9 @@
 /** @vitest-environment jsdom */
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, within } from "@testing-library/react";
 import { afterEach, describe, expect, test, vi } from "vitest";
 import { defaults, type Settings } from "../automation/settings";
 import type { AutoBossView } from "../automation/auto-boss";
+import { BOSSES } from "../data/bosses";
 import { AutoBossPanel } from "./AutoBossPanel";
 
 const status: AutoBossView = {
@@ -28,9 +29,13 @@ function renderPanel(overrides: Partial<Settings> = {}) {
 }
 
 describe("AutoBossPanel", () => {
-  afterEach(cleanup);
+  afterEach(() => {
+    cleanup();
+    document.body.innerHTML = "";
+    vi.restoreAllMocks();
+  });
 
-  test("adds a boss to the queue and exposes keyboard reorder/remove controls", () => {
+  test("adds a boss to the queue and keeps only removal controls", () => {
     const { onChange } = renderPanel();
     fireEvent.change(screen.getByRole("searchbox", { name: /buscar boss/i }), {
       target: { value: "Bloodback" }
@@ -40,8 +45,26 @@ describe("AutoBossPanel", () => {
       autoBossIds: ["shadowpelt", "bloodback"]
     }));
 
-    expect(screen.getByRole("button", { name: /subir shadowpelt/i })).toBeTruthy();
+    expect(screen.queryAllByRole("button", { name: /subir|descer/i })).toHaveLength(0);
     expect(screen.getByRole("button", { name: /remover shadowpelt/i })).toBeTruthy();
+  });
+
+  test("reorders the queue by dragging one boss card onto another", () => {
+    const { onChange } = renderPanel({ autoBossIds: ["shadowpelt", "bloodback"] });
+    const queue = screen.getByRole("list", { name: /fila de exec/i });
+    const shadowpelt = within(queue).getByText("Shadowpelt").closest("li") as HTMLElement;
+    const bloodback = within(queue).getByText("Bloodback").closest("li") as HTMLElement;
+
+    expect(shadowpelt.getAttribute("draggable")).toBe("true");
+    expect(bloodback.getAttribute("draggable")).toBe("true");
+    fireEvent.dragStart(shadowpelt);
+    fireEvent.dragOver(bloodback);
+    expect(bloodback.classList.contains("drag-over")).toBe(true);
+    fireEvent.drop(bloodback);
+
+    expect(onChange).toHaveBeenLastCalledWith(expect.objectContaining({
+      autoBossIds: ["bloodback", "shadowpelt"]
+    }));
   });
 
   test("starts, stops, and enables the daily Brasilia reset", () => {
@@ -71,6 +94,10 @@ describe("AutoBossPanel", () => {
     expect(screen.getAllByRole("list")).toHaveLength(2);
     expect(screen.getByText("Estado atual")).toBeTruthy();
     expect(screen.getByText("Parado")).toBeTruthy();
+    expect(document.querySelectorAll("canvas.leviticus-boss-photo").length).toBeGreaterThan(0);
+    expect(document.querySelectorAll("ul[aria-label='Bosses disponíveis'] > li")).toHaveLength(BOSSES.length - 1);
+    expect(document.querySelector("ul[aria-label='Bosses disponíveis'] > li")?.className).toContain("leviticus-boss-card");
+    expect(document.querySelector("ol[aria-label='Fila de execução'] > li")?.className).toContain("leviticus-boss-queue-card");
     expect(screen.getByRole("button", { name: /iniciar auto boss/i })).toBeTruthy();
     expect(screen.getByRole("switch", { name: /iniciar automaticamente/i })).toBeTruthy();
     expect(screen.queryByText("Progresso")).toBeNull();
@@ -82,5 +109,27 @@ describe("AutoBossPanel", () => {
 
     expect(screen.getAllByRole("list")).toHaveLength(2);
     expect(screen.getByRole("list", { name: /Fila de exec/ })).toBeTruthy();
+  });
+
+  test("asks the native Bosses catalog to load lazy image sprites", () => {
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockReturnValue(null);
+    const cell = document.createElement("div");
+    cell.className = "boss-cell";
+    const image = document.createElement("img");
+    image.className = "boss-cell-mon";
+    Object.defineProperty(image, "complete", { configurable: true, value: true });
+    Object.defineProperty(image, "naturalWidth", { configurable: true, value: 1 });
+    const load = vi.fn();
+    Object.defineProperty(image, "_load", { configurable: true, value: load });
+    const name = document.createElement("b");
+    name.className = "boss-cell-name";
+    name.textContent = "Brain Head";
+    cell.append(image, name);
+    document.body.innerHTML = '<div id="boss-modal"><div class="boss-pane-list"></div></div>';
+    document.querySelector(".boss-pane-list")?.append(cell);
+
+    render(<AutoBossPanel settings={{ ...defaults, autoBossIds: ["brain_head"] }} status={status} onChange={vi.fn()} embedded />);
+
+    expect(load).toHaveBeenCalled();
   });
 });

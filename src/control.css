@@ -85,14 +85,17 @@
 }
 #boss-modal .leviticus-boss-tab:hover,
 #boss-modal .leviticus-boss-tab.leviticus-boss-tab-active,
-#boss-modal .leviticus-boss-tab.active {
+#boss-modal .leviticus-boss-tab.active,
+#boss-modal .leviticus-boss-tab.on {
   color: #b4a7ff;
   border-color: rgba(141, 120, 255, .55);
   background: rgba(141, 120, 255, .12);
 }
 #boss-modal .boss-pane-leviticus { display: none; box-sizing: border-box; width: 100%; padding: 8px; }
 #boss-modal .boss-pane-leviticus.leviticus-boss-pane-active,
-#boss-modal .boss-pane-leviticus.active { display: block; }
+#boss-modal .boss-pane-leviticus.active { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; gap: 8px; overflow: hidden; }
+#boss-modal .boss-panes.leviticus-section-active > .boss-pane:not(#leviticus-boss-pane) { display: none !important; }
+#boss-modal .boss-panes.leviticus-section-active > #leviticus-boss-pane { display: flex !important; }
 #wave-hdr .leviticus-wave-state,
 .wave-hdr .leviticus-wave-state {
   display: inline-flex;
@@ -364,6 +367,103 @@
 .lev-queue-controls button:hover:not(:disabled) { color: var(--lev-violet-bright); border-color: var(--lev-line-strong); background: var(--lev-surface-3); }
 .lev-queue-controls button:disabled { cursor: not-allowed; opacity: .25; }
 .lev-empty-queue { margin: 0; padding: 14px 8px; border: 1px dashed var(--lev-line-strong); border-radius: 8px; text-align: center; }
+
+/* The custom section uses the game's Bosses skin while retaining Leviticus controls. */
+#boss-modal .lev-auto-boss-host .lev-auto-boss-game {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  height: 100%;
+  min-height: 0;
+  padding: 0 0 2px;
+  color: var(--ink);
+  background: transparent;
+  font-family: system-ui, "Segoe UI", sans-serif;
+}
+#boss-modal .lev-auto-boss-host { min-height: 0; overflow: hidden; }
+#boss-modal .lev-auto-boss-host .lev-auto-boss-game.lev-auto-boss-embedded { padding: 0; border: 0; border-radius: 0; background: transparent; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 8px; }
+#boss-modal .lev-auto-boss-host .boss-section-title { margin: 0; color: var(--accent-ink); font-family: var(--serif); font-size: 13px; font-weight: 700; letter-spacing: .06em; line-height: 1.1; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-heading p { margin: 3px 0 0; color: var(--muted); font-size: 10px; line-height: 1.3; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 29px;
+  margin: 0;
+  padding: 5px 8px;
+  color: var(--muted);
+  border: 1px solid var(--edge);
+  border-radius: var(--radius);
+  background: var(--surface-deep);
+  font-size: 11px;
+  text-align: left;
+}
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status b { color: var(--brand-2-ink); font-size: 11px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status small { margin-left: auto; max-width: 46%; overflow: hidden; color: var(--ink-dim); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status.live b { color: var(--ok); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status.waiting b { color: var(--warn); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-current-status.success b { color: var(--ok); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-actions { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-actions > .boss-fight { width: auto; min-width: 124px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-daily { display: flex; align-items: center; gap: 6px; min-height: 30px; cursor: pointer; color: var(--ink-dim); font-size: 10px; line-height: 1.25; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-daily .baiak-switch {
+  all: unset;
+  position: relative;
+  box-sizing: border-box;
+  display: block;
+  flex: 0 0 auto;
+  width: 34px;
+  height: 18px;
+  cursor: pointer;
+  border: 1px solid var(--edge);
+  border-radius: 999px;
+  background: var(--surface-deepest);
+}
+#boss-modal .lev-auto-boss-host .leviticus-boss-daily .baiak-switch[data-state="checked"] { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 25%, var(--surface-deepest)); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-daily .baiak-switch-thumb { display: block; width: 12px; height: 12px; margin: 2px; border: 1px solid var(--edge-hi); border-radius: 50%; background: var(--ink-dim); transition: transform .14s ease, background .14s ease, border-color .14s ease; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-daily .baiak-switch-thumb[data-state="checked"] { border-color: var(--accent); background: var(--accent); transform: translateX(16px); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-grid { display: grid; flex: 1 1 auto; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 8px; min-height: 0; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-pool,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 5px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-pool { display: flex; min-width: 0; min-height: 0; flex-direction: column; gap: 5px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-list-heading { display: flex; align-items: baseline; justify-content: space-between; gap: 6px; color: var(--ink-dim); font-size: 11px; font-weight: 700; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-list-heading small { color: var(--muted); font-size: 9px; font-weight: 400; }
+#boss-modal .lev-auto-boss-host .pick-search { box-sizing: border-box; flex: 0 0 auto; width: 100%; min-height: 29px; padding: 5px 8px; color: var(--ink); border: 1px solid var(--edge); border-radius: var(--radius); outline: none; background: var(--surface-deep); font: inherit; font-size: 11px; }
+#boss-modal .lev-auto-boss-host .pick-search:focus { border-color: var(--accent); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-results { display: flex; flex: 1 1 auto; min-height: 0; flex-direction: column; gap: 4px; max-height: none; margin: 0; padding: 2px; overflow-y: auto; list-style: none; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-results > li { min-width: 0; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card { position: relative; display: flex; align-items: center; gap: 8px; min-height: 44px; padding: 4px 7px; overflow: hidden; color: var(--ink); border: 1px solid var(--edge); border-top-color: var(--edge-hi); border-radius: var(--radius); background: var(--panel2); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card { cursor: grab; transition: border-color .14s ease, background-color .14s ease, opacity .14s ease, box-shadow .14s ease; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.dragging { cursor: grabbing; opacity: .55; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.drag-over { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--panel2)); box-shadow: inset 0 -2px 0 var(--accent); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card:hover,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card:hover { border-color: var(--accent); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-rarity { position: absolute; inset: 0 auto 0 0; width: 3px; background: var(--edge); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card.bane .leviticus-boss-rarity,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.bane .leviticus-boss-rarity { background: var(--x-s-5c8a48); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card.archfoe .leviticus-boss-rarity,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.archfoe .leviticus-boss-rarity { background: var(--x-s-8a6a2a); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card.nemesis .leviticus-boss-rarity,
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.nemesis .leviticus-boss-rarity { background: var(--x-s-96432c); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-photo { flex: 0 0 32px; width: 32px; height: 32px; image-rendering: pixelated; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card-info { display: flex; min-width: 0; flex: 1; flex-direction: column; gap: 2px; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card-info strong { overflow: hidden; color: var(--ink); font-size: 11px; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-card-info small { overflow: hidden; color: var(--ink-dim); font-size: 9px; text-overflow: ellipsis; white-space: nowrap; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-add { display: grid; flex: 0 0 24px; place-items: center; width: 24px; height: 24px; padding: 0; cursor: pointer; color: var(--ink-dim); border: 1px solid var(--edge); border-radius: var(--radius); background: #0000008c; font-size: 16px; line-height: 1; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-add:hover { color: var(--brand-2-ink); border-color: var(--accent); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-list { display: flex; flex: 1 1 auto; min-height: 0; max-height: none; margin: 0; padding: 2px; overflow-y: auto; flex-direction: column; gap: 4px; list-style: none; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-list.empty { max-height: none; }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.active { border-color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.win { border-color: var(--ok); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-queue-card.lose { border-color: var(--bad); }
+#boss-modal .lev-auto-boss-host .leviticus-boss-order { flex: 0 0 21px; color: var(--brand-2-ink); font: 700 10px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; text-align: center; }
+#boss-modal .lev-auto-boss-host .leviticus-queue-remove { position: absolute; top: 3px; right: 3px; z-index: 1; display: grid; width: 18px; height: 18px; place-items: center; padding: 0; cursor: pointer; color: var(--ink-dim); border: 1px solid var(--edge); border-radius: 4px; background: #0000008c; font: 700 13px/1 system-ui, sans-serif; }
+#boss-modal .lev-auto-boss-host .leviticus-queue-remove:hover { color: var(--brand-2-ink); border-color: var(--accent); }
+#boss-modal .lev-auto-boss-host .lev-boss-result.win { color: var(--ok); }
+#boss-modal .lev-auto-boss-host .lev-boss-result.lose { color: var(--bad); }
+#boss-modal .lev-auto-boss-host .boss-pl-empty { grid-column: 1 / -1; margin: 0; padding: 6px 2px; color: var(--ink-dim); font-size: 11px; }
 
 .baiak-dev { display: grid; gap: 10px; padding: 12px; color: var(--lev-muted); font-size: 10px; line-height: 1.45; }
 .baiak-dev p { margin: 0; }

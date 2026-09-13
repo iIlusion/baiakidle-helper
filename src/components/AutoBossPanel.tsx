@@ -38,8 +38,65 @@ function QueueResult({ result }: { result: "win" | "lose" | undefined }): React.
   return <span className={"lev-boss-result" + (result ? " " + result : "")}>{resultLabel(result)}</span>;
 }
 
+type NativeBossSprite = (HTMLCanvasElement | HTMLImageElement) & { _load?: () => void };
+
+function BossSprite({ boss }: { boss: BossEntry }): React.JSX.Element {
+  const canvasRef = React.useRef<HTMLCanvasElement>(null);
+
+  React.useEffect(() => {
+    let timer: number | undefined;
+    let attempts = 0;
+
+    const copySprite = (): boolean => {
+      attempts += 1;
+      const target = canvasRef.current;
+      const sourceCell = Array.from(document.querySelectorAll<HTMLElement>("#boss-modal .boss-pane-list .boss-cell"))
+        .find(cell => cell.querySelector(".boss-cell-name")?.textContent?.trim() === boss.name);
+      const source = sourceCell?.querySelector<HTMLCanvasElement | HTMLImageElement>("canvas.boss-cell-mon, img.boss-cell-mon") as NativeBossSprite | null;
+
+      source?._load?.();
+      if (!target || !source) return false;
+
+      if (source instanceof HTMLImageElement && (!source.complete || source.naturalWidth === 0)) return false;
+      if (source instanceof HTMLCanvasElement) {
+        try {
+          const pixels = source.getContext("2d")?.getImageData(0, 0, source.width, source.height).data;
+          if (!pixels || !Array.from(pixels).some((value, index) => index % 4 === 3 && value > 0)) return false;
+        } catch {
+          return false;
+        }
+      }
+
+      try {
+        const width = source instanceof HTMLImageElement ? source.naturalWidth : source.width;
+        const height = source instanceof HTMLImageElement ? source.naturalHeight : source.height;
+        target.width = width || 52;
+        target.height = height || 52;
+        target.getContext("2d")?.drawImage(source, 0, 0);
+        return true;
+      } catch {
+        // A missing sprite should not stop the custom boss controls.
+        return false;
+      }
+    };
+
+    const retry = () => {
+      if (!copySprite() && attempts < 8) timer = window.setTimeout(retry, 100);
+    };
+
+    retry();
+    return () => {
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, [boss.id, boss.name]);
+
+  return <canvas ref={canvasRef} className="boss-cell-mon leviticus-boss-photo" width={52} height={52} aria-hidden="true" />;
+}
+
 export function AutoBossPanel({ settings, status, onChange, embedded = false }: AutoBossPanelProps): React.JSX.Element {
   const [query, setQuery] = React.useState("");
+  const [draggingBossId, setDraggingBossId] = React.useState<string | null>(null);
+  const [dragOverBossId, setDragOverBossId] = React.useState<string | null>(null);
   const queued = settings.autoBossIds
     .map(id => bossById(id))
     .filter((boss): boss is BossEntry => Boolean(boss));
@@ -47,8 +104,7 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
   const needle = query.trim().toLowerCase();
   const available = BOSSES
     .filter(boss => !queuedIds.has(boss.id))
-    .filter(boss => !needle || (boss.name + " " + boss.id).toLowerCase().includes(needle))
-    .slice(0, 8);
+    .filter(boss => !needle || (boss.name + " " + boss.id).toLowerCase().includes(needle));
 
   const updateQueue = (nextQueue: string[]) => {
     onChange({ ...settings, autoBossIds: nextQueue });
@@ -65,13 +121,39 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
     onChange({ ...settings, autoBossIds: next, autoBossIndex: nextIndex });
   };
 
-  const moveBoss = (id: string, direction: -1 | 1) => {
+  const reorderBoss = (sourceId: string, targetId: string) => {
     const next = queued.map(boss => boss.id);
-    const index = next.indexOf(id);
-    const target = index + direction;
-    if (index < 0 || target < 0 || target >= next.length) return;
-    [next[index], next[target]] = [next[target]!, next[index]!];
+    const sourceIndex = next.indexOf(sourceId);
+    const targetIndex = next.indexOf(targetId);
+    if (sourceIndex < 0 || targetIndex < 0 || sourceIndex === targetIndex) return;
+    const [moved] = next.splice(sourceIndex, 1);
+    if (!moved) return;
+    next.splice(targetIndex, 0, moved);
     onChange({ ...settings, autoBossIds: next });
+  };
+
+  const clearDragState = () => {
+    setDraggingBossId(null);
+    setDragOverBossId(null);
+  };
+
+  const handleDragStart = (event: React.DragEvent<HTMLLIElement>, bossId: string) => {
+    setDraggingBossId(bossId);
+    event.dataTransfer?.setData("text/plain", bossId);
+    if (event.dataTransfer) event.dataTransfer.effectAllowed = "move";
+  };
+
+  const handleDragOver = (event: React.DragEvent<HTMLLIElement>, bossId: string) => {
+    event.preventDefault();
+    setDragOverBossId(bossId);
+    if (event.dataTransfer) event.dataTransfer.dropEffect = "move";
+  };
+
+  const handleDrop = (event: React.DragEvent<HTMLLIElement>, targetId: string) => {
+    event.preventDefault();
+    const sourceId = event.dataTransfer?.getData("text/plain") || draggingBossId;
+    if (sourceId) reorderBoss(sourceId, targetId);
+    clearDragState();
   };
 
   const start = () => {
@@ -91,32 +173,32 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
 
   const stop = () => onChange({ ...settings, autoBoss: false });
   const isRunning = settings.autoBoss;
-  const panelClass = ["lev-auto-boss", embedded ? "lev-auto-boss-embedded" : ""].filter(Boolean).join(" ");
+  const panelClass = ["lev-auto-boss", "lev-auto-boss-game", embedded ? "lev-auto-boss-embedded" : ""].filter(Boolean).join(" ");
 
   return (
     <section className={panelClass} aria-labelledby="lev-auto-boss-title">
-      <div className="lev-section-heading">
+      <div className="leviticus-boss-heading">
         <div>
-          <h3 id="lev-auto-boss-title">Auto Boss</h3>
-          <p>Fila própria e início manual ou automático às 00h.</p>
+          <h3 id="lev-auto-boss-title" className="boss-section-title">Auto Boss</h3>
+          <p className="muted">Fila própria e início manual ou automático às 00h.</p>
         </div>
       </div>
 
-      <div className={"lev-boss-current-status " + statusTone(status.phase)} aria-live="polite">
+      <div className={"boss-global leviticus-boss-current-status " + statusTone(status.phase)} aria-live="polite">
         <span>Estado atual</span>
-        <strong>{phaseLabels[status.phase]}</strong>
+        <b>{phaseLabels[status.phase]}</b>
         <small>{bossById(status.currentId)?.name ?? "Nenhum alvo selecionado"}</small>
       </div>
 
-      <div className="lev-boss-actions">
+      <div className="leviticus-boss-actions">
         {isRunning ? (
-          <button type="button" className="lev-button secondary" onClick={stop} aria-label="Parar Auto Boss">
+          <button type="button" className="boss-fight" onClick={stop} aria-label="Parar Auto Boss">
             Parar Auto Boss
           </button>
         ) : (
           <button
             type="button"
-            className="lev-button primary"
+            className="boss-fight"
             onClick={start}
             disabled={queued.length === 0}
             aria-label="Iniciar Auto Boss"
@@ -124,7 +206,7 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
             Iniciar Auto Boss
           </button>
         )}
-        <label className="lev-daily-toggle">
+        <label className="leviticus-boss-daily">
           <Switch
             checked={settings.autoBossOnReset}
             onCheckedChange={checked => onChange({ ...settings, autoBossOnReset: checked })}
@@ -134,11 +216,12 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
         </label>
       </div>
 
-      <div className="lev-boss-queue-grid">
-        <div className="lev-boss-pool">
-          <label htmlFor="lev-boss-search">Bosses disponíveis</label>
+      <div className="leviticus-boss-queue-grid">
+        <div className="leviticus-boss-pool">
+          <div className="leviticus-boss-list-heading">Bosses disponíveis</div>
           <input
             id="lev-boss-search"
+            className="pick-search"
             type="search"
             role="searchbox"
             value={query}
@@ -146,41 +229,53 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
             placeholder="Buscar por nome ou ID"
             aria-label="Buscar boss"
           />
-          <ul className="lev-boss-results" aria-label="Bosses disponíveis">
+          <ul className="sp-list leviticus-boss-results" aria-label="Bosses disponíveis">
             {available.length > 0 ? available.map(boss => (
-              <li key={boss.id}>
-                <button type="button" onClick={() => addBoss(boss)} aria-label={"Adicionar " + boss.name}>
-                  <span>{boss.name}</span><small>lvl {boss.minLevel}</small>
+              <li key={boss.id} className={"leviticus-boss-card " + boss.rarity} title={boss.name}>
+                <span className="leviticus-boss-rarity" />
+                <BossSprite boss={boss} />
+                <span className="leviticus-boss-card-info">
+                  <strong>{boss.name}</strong>
+                  <small>lvl {boss.minLevel}</small>
+                </span>
+                <button className="leviticus-boss-add" type="button" onClick={() => addBoss(boss)} aria-label={"Adicionar " + boss.name}>
+                  +
                 </button>
               </li>
             )) : <li className="lev-empty-line">Nenhum boss encontrado.</li>}
           </ul>
         </div>
 
-        <div className="lev-boss-queue">
-          <div className="lev-queue-heading">
+        <div className="leviticus-boss-queue">
+          <div className="leviticus-boss-list-heading">
             <span>Fila de execução</span>
             <small>{queued.length} selecionado{queued.length === 1 ? "" : "s"}</small>
           </div>
-          <ol aria-label="Fila de execução">
+          <ol className={"leviticus-boss-queue-list" + (queued.length === 0 ? " empty" : "")} aria-label="Fila de execução">
             {queued.length > 0 ? queued.map((boss, index) => {
                 const result = status.results[boss.id];
                 const current = status.currentId === boss.id;
                 return (
-                  <li key={boss.id} className={(current ? "current" : "") + (result ? " " + result : "")}>
-                    <span className="lev-queue-index">{String(index + 1).padStart(2, "0")}</span>
-                    <div className="lev-queue-name">
+                  <li
+                    key={boss.id}
+                    className={"leviticus-boss-queue-card " + boss.rarity + (current ? " active" : "") + (result ? " " + result : "") + (draggingBossId === boss.id ? " dragging" : "") + (dragOverBossId === boss.id ? " drag-over" : "")}
+                    title={boss.name}
+                    draggable
+                    onDragStart={event => handleDragStart(event, boss.id)}
+                    onDragOver={event => handleDragOver(event, boss.id)}
+                    onDrop={event => handleDrop(event, boss.id)}
+                    onDragEnd={clearDragState}
+                  >
+                    <BossSprite boss={boss} />
+                    <span className="leviticus-boss-order">{String(index + 1).padStart(2, "0")}</span>
+                    <span className="leviticus-boss-card-info">
                       <strong>{boss.name}</strong>
-                      <small>lvl {boss.minLevel} · {boss.rarity} · <QueueResult result={result} /></small>
-                    </div>
-                    <div className="lev-queue-controls">
-                      <button type="button" onClick={() => moveBoss(boss.id, -1)} disabled={index === 0} aria-label={"Subir " + boss.name}>Subir</button>
-                      <button type="button" onClick={() => moveBoss(boss.id, 1)} disabled={index === queued.length - 1} aria-label={"Descer " + boss.name}>Descer</button>
-                      <button type="button" onClick={() => removeBoss(boss.id)} aria-label={"Remover " + boss.name}>Remover</button>
-                    </div>
+                      <small>lvl {boss.minLevel} · <QueueResult result={result} /></small>
+                    </span>
+                    <button className="leviticus-queue-remove" type="button" onClick={() => removeBoss(boss.id)} aria-label={"Remover " + boss.name} title="Remover">×</button>
                   </li>
                 );
-              }) : <li className="lev-empty-queue">Adicione bosses à fila para começar.</li>}
+              }) : <li className="boss-pl-empty">Adicione bosses à fila para começar.</li>}
           </ol>
         </div>
       </div>
