@@ -20,12 +20,13 @@ import { startMarketAnnounce } from "./automation/market-announce";
 import { startPerfProbe } from "./automation/perf-probe";
 import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
 import { readAutoBossView, startScheduler } from "./automation/scheduler";
-import { startBossMenuObserver } from "./automation/boss-menu";
+import { startBossMenuObserver, type BossMenuHosts } from "./automation/boss-menu";
 import { startTeleportProbe } from "./automation/probe";
 import { HUNTS, huntById } from "./data/hunts";
 import { AutoBossPanel } from "./components/AutoBossPanel";
 import { LeviticusMark } from "./components/LeviticusMark";
 import { LeviticusTabIcon } from "./components/LeviticusTabIcon";
+import { AutoBossWaveState } from "./components/AutoBossWaveState";
 import styles from "./control.css?inline";
 
 declare const unsafeWindow: Window & typeof globalThis;
@@ -82,7 +83,7 @@ function ControlMenu(): React.JSX.Element {
   const [gameConnected, setGameConnected] = React.useState(false);
   const [autoBossStatus, setAutoBossStatus] = React.useState(() => readAutoBossView(value));
   const [bridgeConnected, setBridgeConnected] = React.useState(false);
-  const [bossMenuHost, setBossMenuHost] = React.useState<HTMLElement | null>(null);
+  const [bossMenuHosts, setBossMenuHosts] = React.useState<BossMenuHosts>({ panel: null, state: null });
   const [position, setPosition] = React.useState<Position>({ left: 8, top: 78 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -110,7 +111,7 @@ function ControlMenu(): React.JSX.Element {
     const bossMenu = startBossMenuObserver(
       page.document,
       () => settings.autoBossVisible,
-      setBossMenuHost
+      setBossMenuHosts
     );
     const syncBossMenu = () => bossMenu.sync();
     page.addEventListener(SETTINGS_EVENT, syncBossMenu);
@@ -683,7 +684,7 @@ function ControlMenu(): React.JSX.Element {
         </div>,
         page.document.body
       )}
-      {bossMenuHost && value.autoBossVisible ? createPortal(
+      {bossMenuHosts.panel && value.autoBossVisible ? createPortal(
         <AutoBossPanel
           embedded
           settings={value}
@@ -693,7 +694,11 @@ function ControlMenu(): React.JSX.Element {
             persist(next);
           }}
         />,
-        bossMenuHost
+        bossMenuHosts.panel
+      ) : null}
+      {bossMenuHosts.state ? createPortal(
+        <AutoBossWaveState status={autoBossStatus} />,
+        bossMenuHosts.state
       ) : null}
     </>
   );
