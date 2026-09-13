@@ -20,10 +20,12 @@ import { startMarketAnnounce } from "./automation/market-announce";
 import { startPerfProbe } from "./automation/perf-probe";
 import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
 import { readAutoBossView, startScheduler } from "./automation/scheduler";
+import { startBossMenuObserver } from "./automation/boss-menu";
 import { startTeleportProbe } from "./automation/probe";
 import { HUNTS, huntById } from "./data/hunts";
 import { AutoBossPanel } from "./components/AutoBossPanel";
 import { LeviticusMark } from "./components/LeviticusMark";
+import { LeviticusTabIcon } from "./components/LeviticusTabIcon";
 import styles from "./control.css?inline";
 
 declare const unsafeWindow: Window & typeof globalThis;
@@ -54,15 +56,6 @@ function persist(next: Settings): void {
   page.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: next }));
 }
 
-function BotIcon(): React.JSX.Element {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-      <path d="M12 3v3M8 3h8M6 9h12a2 2 0 0 1 2 2v7a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2Z" />
-      <path d="M8 14h.01M16 14h.01M9 17h6M2 13h2M20 13h2" />
-    </svg>
-  );
-}
-
 function RadioIcon(): React.JSX.Element {
   return (
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
@@ -89,6 +82,7 @@ function ControlMenu(): React.JSX.Element {
   const [gameConnected, setGameConnected] = React.useState(false);
   const [autoBossStatus, setAutoBossStatus] = React.useState(() => readAutoBossView(value));
   const [bridgeConnected, setBridgeConnected] = React.useState(false);
+  const [bossMenuHost, setBossMenuHost] = React.useState<HTMLElement | null>(null);
   const [position, setPosition] = React.useState<Position>({ left: 8, top: 78 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
   const panelRef = React.useRef<HTMLDivElement>(null);
@@ -110,6 +104,20 @@ function ControlMenu(): React.JSX.Element {
     };
     page.addEventListener(SETTINGS_EVENT, onSettings as EventListener);
     return () => page.removeEventListener(SETTINGS_EVENT, onSettings as EventListener);
+  }, []);
+
+  React.useEffect(() => {
+    const bossMenu = startBossMenuObserver(
+      page.document,
+      () => settings.autoBossVisible,
+      setBossMenuHost
+    );
+    const syncBossMenu = () => bossMenu.sync();
+    page.addEventListener(SETTINGS_EVENT, syncBossMenu);
+    return () => {
+      page.removeEventListener(SETTINGS_EVENT, syncBossMenu);
+      bossMenu.disconnect();
+    };
   }, []);
 
   React.useEffect(() => {
@@ -228,7 +236,7 @@ function ControlMenu(): React.JSX.Element {
         aria-expanded={open}
         onClick={() => setOpen(current => !current)}
       >
-        <span className="baiak-control-icon" aria-hidden="true"><BotIcon /></span>
+        <LeviticusTabIcon />
         <span>Leviticus</span>
       </button>
       {open && createPortal(
@@ -265,14 +273,15 @@ function ControlMenu(): React.JSX.Element {
 
           {!__BAIAKIDLE_DEV__ || view === "automation" ? (
             <div className="baiak-control-body">
-              <AutoBossPanel
-                settings={value}
-                status={autoBossStatus}
-                onChange={next => {
-                  setValue(next);
-                  persist(next);
-                }}
-              />
+              <div className="baiak-setting-group">
+                <SettingRow
+                  id="baiak-auto-boss-visible"
+                  title="Mostrar Auto Boss no menu de Boss"
+                  description="Exibe o Auto Boss da extensão dentro do menu Chefes. A lógica é própria e não usa o Auto Boss nativo."
+                  checked={value.autoBossVisible}
+                  onCheckedChange={checked => change("autoBossVisible", checked)}
+                />
+              </div>
               <div className="baiak-setting-group">
                 <SettingRow
                   id="baiak-auto-sell"
@@ -674,6 +683,18 @@ function ControlMenu(): React.JSX.Element {
         </div>,
         page.document.body
       )}
+      {bossMenuHost && value.autoBossVisible ? createPortal(
+        <AutoBossPanel
+          embedded
+          settings={value}
+          status={autoBossStatus}
+          onChange={next => {
+            setValue(next);
+            persist(next);
+          }}
+        />,
+        bossMenuHost
+      ) : null}
     </>
   );
 }

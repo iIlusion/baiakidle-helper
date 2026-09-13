@@ -8,6 +8,7 @@ export type AutoBossPanelProps = {
   settings: Settings;
   status: AutoBossView;
   onChange: (next: Settings) => void;
+  embedded?: boolean;
 };
 
 const phaseLabels: Record<AutoBossView["phase"], string> = {
@@ -37,7 +38,7 @@ function QueueResult({ result }: { result: "win" | "lose" | undefined }): React.
   return <span className={`lev-boss-result${result ? ` ${result}` : ""}`}>{resultLabel(result)}</span>;
 }
 
-export function AutoBossPanel({ settings, status, onChange }: AutoBossPanelProps): React.JSX.Element {
+export function AutoBossPanel({ settings, status, onChange, embedded = false }: AutoBossPanelProps): React.JSX.Element {
   const [query, setQuery] = React.useState("");
   const queued = settings.autoBossIds
     .map(id => bossById(id))
@@ -92,7 +93,7 @@ export function AutoBossPanel({ settings, status, onChange }: AutoBossPanelProps
   const isRunning = settings.autoBoss;
 
   return (
-    <section className="lev-auto-boss" aria-labelledby="lev-auto-boss-title">
+    <section className={`lev-auto-boss${embedded ? " lev-auto-boss-embedded" : ""}`} aria-labelledby="lev-auto-boss-title">
       <div className="lev-section-heading">
         <div>
           <h3 id="lev-auto-boss-title">Auto Boss</h3>

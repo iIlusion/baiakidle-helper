@@ -14,7 +14,7 @@
   color: #b4a7ff;
 }
 #tab-baiak-control .baiak-control-icon svg { width: 21px; height: 21px; stroke-width: 1.7; }
-#tab-baiak-control.on .baiak-control-icon { color: #5ed9ff; }
+#tab-baiak-control.on .baiak-control-icon { color: #b4a7ff; }
 
 #baiakidle-control-panel {
   --lev-void: #050609;
@@ -53,6 +53,33 @@
 #baiakidle-control-panel::-webkit-scrollbar-track { background: var(--lev-surface-2); }
 #baiakidle-control-panel::-webkit-scrollbar-thumb { border-radius: 8px; background: var(--lev-faint); }
 #baiakidle-control-panel ::selection { color: var(--lev-void); background: var(--lev-violet-bright); }
+
+.lev-auto-boss-host {
+  --lev-void: #050609;
+  --lev-surface: #0f1118;
+  --lev-surface-2: #151823;
+  --lev-surface-3: #1b1f2c;
+  --lev-ink: #f5f6fa;
+  --lev-soft: #c5cad5;
+  --lev-muted: #8992a4;
+  --lev-faint: #626b7b;
+  --lev-line: rgba(229, 235, 255, .12);
+  --lev-line-strong: rgba(229, 235, 255, .2);
+  --lev-violet: #8d78ff;
+  --lev-violet-bright: #b4a7ff;
+  --lev-violet-dim: rgba(141, 120, 255, .15);
+  --lev-cyan: #5ed9ff;
+  --lev-green: #63dfae;
+  --lev-orange: #ffb865;
+  display: block;
+  box-sizing: border-box;
+  width: 100%;
+  color: var(--lev-ink);
+  color-scheme: dark;
+  font-family: "Manrope Variable", "Segoe UI", sans-serif;
+}
+.leviticus-auto-boss-tab-hidden,
+.leviticus-native-auto-boss-hidden { display: none !important; }
 
 .baiak-control-head {
   position: sticky;
@@ -172,7 +199,8 @@
   text-align: right;
 }
 
-#baiakidle-control-panel .baiak-switch {
+#baiakidle-control-panel .baiak-switch,
+.lev-auto-boss-host .baiak-switch {
   all: unset;
   position: relative;
   box-sizing: border-box;
@@ -185,11 +213,13 @@
   background: var(--lev-void);
   transition: border-color .14s ease, background .14s ease;
 }
-#baiakidle-control-panel .baiak-switch[data-state="checked"] {
+#baiakidle-control-panel .baiak-switch[data-state="checked"],
+.lev-auto-boss-host .baiak-switch[data-state="checked"] {
   border-color: var(--lev-violet);
   background: var(--lev-violet-dim);
 }
 #baiakidle-control-panel .baiak-switch:focus-visible,
+.lev-auto-boss-host .baiak-switch:focus-visible,
 #baiakidle-control-panel button:focus-visible,
 #baiakidle-control-panel input:focus-visible,
 #baiakidle-control-panel select:focus-visible,
@@ -242,6 +272,12 @@
   padding: 13px 0 12px;
   border-bottom: 1px solid var(--lev-line);
 }
+.lev-auto-boss-embedded {
+  padding: 12px;
+  border: 1px solid var(--lev-line-strong);
+  border-radius: 10px;
+  background: var(--lev-surface);
+}
 .lev-section-heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; }
 .lev-section-heading h3 { margin: 0; color: var(--lev-ink); font-size: 14px; letter-spacing: -.025em; }
 .lev-section-heading p { max-width: 240px; margin: 4px 0 0; color: var(--lev-muted); font-size: 9.5px; line-height: 1.35; }
@@ -281,7 +317,7 @@
 .lev-boss-queue li.current { border-color: rgba(141, 120, 255, .65); background: var(--lev-violet-dim); }
 .lev-boss-queue li.win { border-color: rgba(99, 223, 174, .35); }
 .lev-boss-queue li.lose { border-color: rgba(255, 132, 157, .3); }
-.lev-queue-index { color: var(--lev-faint); font: 700 9px/1 "Geist Mono", Consolas, monospace; }
+.lev-queue-index { color: var(--lev-faint); font: 700 9px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; }
 .lev-queue-name { min-width: 0; }
 .lev-queue-name strong { display: block; overflow: hidden; color: var(--lev-ink); font-size: 10px; font-weight: 750; text-overflow: ellipsis; white-space: nowrap; }
 .lev-queue-name small { display: block; overflow: hidden; margin-top: 3px; color: var(--lev-muted); font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
@@ -301,7 +337,7 @@
 .baiak-dev-status > div > span { display: block; margin-top: 3px; }
 .baiak-dev-steps { display: grid; gap: 5px; margin: 0; padding-left: 20px; }
 .baiak-dev a { color: var(--lev-violet-bright); text-underline-offset: 3px; }
-.baiak-dev code, .baiak-dev pre { font-family: "Geist Mono", Consolas, monospace; font-size: 9px; }
+.baiak-dev code, .baiak-dev pre { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 9px; }
 .baiak-dev code { padding: 2px 4px; color: var(--lev-cyan); border: 1px solid var(--lev-line); border-radius: 4px; background: var(--lev-void); }
 .baiak-dev pre { overflow-x: auto; margin: 0; padding: 9px; color: var(--lev-soft); border: 1px solid var(--lev-line); border-radius: 8px; background: var(--lev-void); line-height: 1.45; white-space: pre; }
 .baiak-dev-footnote { padding-left: 8px; color: var(--lev-orange); border-left: 1px solid var(--lev-orange); }
@@ -345,5 +381,5 @@
 }
 @media (prefers-reduced-motion: reduce) {
   #baiakidle-control-panel { animation: none; }
-  #baiakidle-control-panel *, #tab-baiak-control * { transition: none !important; }
+  #baiakidle-control-panel *, #tab-baiak-control *, .lev-auto-boss-host * { transition: none !important; }
 }

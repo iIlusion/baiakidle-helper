@@ -55,4 +55,12 @@ describe("AutoBossPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /parar auto boss/i }));
     expect(stopped.onChange).toHaveBeenLastCalledWith(expect.objectContaining({ autoBoss: false }));
   });
+
+  test("supports the compact embedded menu presentation", () => {
+    const settings: Settings = { ...defaults, autoBossIds: ["shadowpelt"] };
+    render(<AutoBossPanel settings={settings} status={status} onChange={vi.fn()} embedded />);
+
+    expect(screen.getByRole("region", { name: "Auto Boss" }).className)
+      .toContain("lev-auto-boss-embedded");
+  });
 });

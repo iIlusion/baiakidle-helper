@@ -57,6 +57,8 @@ export type Settings = {
   autoMarketAnnounceIntervalMs: number;
   /** Extension-owned ordered boss queue; native boss automation is never used. */
   autoBoss: boolean;
+  /** Controls whether the extension-owned Auto Boss panel is rendered in the game menu. */
+  autoBossVisible: boolean;
   autoBossOnReset: boolean;
   autoBossIds: string[];
   autoBossIndex: number;
@@ -105,6 +107,7 @@ export const defaults: Settings = {
   /** Native server gap is ~4 min between any aucshare. */
   autoMarketAnnounceIntervalMs: 4 * 60 * 1_000,
   autoBoss: false,
+  autoBossVisible: true,
   autoBossOnReset: false,
   autoBossIds: [],
   autoBossIndex: 0,
@@ -204,6 +207,7 @@ export function loadSettings(
         raw.autoMarketAnnounceIntervalMs
       ),
       autoBoss: asBool(raw.autoBoss, defaults.autoBoss),
+      autoBossVisible: asBool(raw.autoBossVisible, defaults.autoBossVisible),
       autoBossOnReset: asBool(raw.autoBossOnReset, defaults.autoBossOnReset),
       autoBossIds: parseAutoBossIds(raw.autoBossIds),
       autoBossIndex: Math.max(

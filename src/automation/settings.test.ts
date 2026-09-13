@@ -16,6 +16,7 @@ describe("Auto Boss settings", () => {
   test("keeps a safe disabled runtime default", () => {
     expect(defaults.autoBoss).toBe(false);
     expect(defaults.autoBossOnReset).toBe(false);
+    expect(defaults.autoBossVisible).toBe(true);
     expect(defaults.autoBossIds).toEqual([]);
     expect(defaults.autoBossLastResult).toBe("");
   });
@@ -23,6 +24,7 @@ describe("Auto Boss settings", () => {
   test("validates queue and runtime fields while preserving the legacy key", () => {
     const loaded = loadSettings(storage(JSON.stringify({
       autoBoss: true,
+      autoBossVisible: false,
       autoBossIds: ["shadowpelt", "missing", "shadowpelt", "grand_master_oberon"],
       autoBossIndex: 999,
       autoBossLastResult: "bad",
@@ -31,6 +33,7 @@ describe("Auto Boss settings", () => {
 
     expect(STORAGE_KEY).toBe("baiakidle-helper-v1");
     expect(loaded.autoBoss).toBe(true);
+    expect(loaded.autoBossVisible).toBe(false);
     expect(loaded.autoBossIds).toEqual(["shadowpelt", "oberon"]);
     expect(loaded.autoBossIndex).toBe(2);
     expect(loaded.autoBossLastResult).toBe("");
