@@ -35,7 +35,7 @@ function resultLabel(result: "win" | "lose" | undefined): string {
 }
 
 function QueueResult({ result }: { result: "win" | "lose" | undefined }): React.JSX.Element {
-  return <span className={`lev-boss-result${result ? ` ${result}` : ""}`}>{resultLabel(result)}</span>;
+  return <span className={"lev-boss-result" + (result ? " " + result : "")}>{resultLabel(result)}</span>;
 }
 
 export function AutoBossPanel({ settings, status, onChange, embedded = false }: AutoBossPanelProps): React.JSX.Element {
@@ -47,7 +47,7 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
   const needle = query.trim().toLowerCase();
   const available = BOSSES
     .filter(boss => !queuedIds.has(boss.id))
-    .filter(boss => !needle || `${boss.name} ${boss.id}`.toLowerCase().includes(needle))
+    .filter(boss => !needle || (boss.name + " " + boss.id).toLowerCase().includes(needle))
     .slice(0, 8);
 
   const updateQueue = (nextQueue: string[]) => {
@@ -91,37 +91,21 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
 
   const stop = () => onChange({ ...settings, autoBoss: false });
   const isRunning = settings.autoBoss;
+  const panelClass = ["lev-auto-boss", embedded ? "lev-auto-boss-embedded" : ""].filter(Boolean).join(" ");
 
   return (
-    <section className={`lev-auto-boss${embedded ? " lev-auto-boss-embedded" : ""}`} aria-labelledby="lev-auto-boss-title">
+    <section className={panelClass} aria-labelledby="lev-auto-boss-title">
       <div className="lev-section-heading">
         <div>
           <h3 id="lev-auto-boss-title">Auto Boss</h3>
-          <p>Fila própria, controle manual e reset diário às 00h de Brasília.</p>
+          <p>Fila própria e início manual ou automático às 00h.</p>
         </div>
-        <span className={`lev-runtime-state ${statusTone(status.phase)}`}>
-          <span className="lev-status-dot" aria-hidden="true" />
-          {phaseLabels[status.phase]}
-        </span>
       </div>
 
-      <div className="lev-boss-runtime" aria-live="polite">
-        <div>
-          <span className="lev-runtime-label">Progresso</span>
-          <strong>{status.index}/{status.total}</strong>
-        </div>
-        <div>
-          <span className="lev-runtime-label">Cargas</span>
-          <strong>{status.chargesLeft === null ? "—" : `${status.chargesLeft}/${status.chargesMax}`}</strong>
-        </div>
-        <div>
-          <span className="lev-runtime-label">Stamina</span>
-          <strong>{status.staminaMinutes}m</strong>
-        </div>
-        <div className="lev-runtime-current">
-          <span className="lev-runtime-label">Alvo atual</span>
-          <strong>{bossById(status.currentId)?.name ?? "Nenhum"}</strong>
-        </div>
+      <div className={"lev-boss-current-status " + statusTone(status.phase)} aria-live="polite">
+        <span>Estado atual</span>
+        <strong>{phaseLabels[status.phase]}</strong>
+        <small>{bossById(status.currentId)?.name ?? "Nenhum alvo selecionado"}</small>
       </div>
 
       <div className="lev-boss-actions">
@@ -152,7 +136,7 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
 
       <div className="lev-boss-queue-grid">
         <div className="lev-boss-pool">
-          <label htmlFor="lev-boss-search">Adicionar boss</label>
+          <label htmlFor="lev-boss-search">Bosses disponíveis</label>
           <input
             id="lev-boss-search"
             type="search"
@@ -162,13 +146,15 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
             placeholder="Buscar por nome ou ID"
             aria-label="Buscar boss"
           />
-          <div className="lev-boss-results" aria-label="Bosses disponíveis">
+          <ul className="lev-boss-results" aria-label="Bosses disponíveis">
             {available.length > 0 ? available.map(boss => (
-              <button key={boss.id} type="button" onClick={() => addBoss(boss)} aria-label={`Adicionar ${boss.name}`}>
-                <span>{boss.name}</span><small>lvl {boss.minLevel}</small>
-              </button>
-            )) : <span className="lev-empty-line">Nenhum boss encontrado.</span>}
-          </div>
+              <li key={boss.id}>
+                <button type="button" onClick={() => addBoss(boss)} aria-label={"Adicionar " + boss.name}>
+                  <span>{boss.name}</span><small>lvl {boss.minLevel}</small>
+                </button>
+              </li>
+            )) : <li className="lev-empty-line">Nenhum boss encontrado.</li>}
+          </ul>
         </div>
 
         <div className="lev-boss-queue">
@@ -177,21 +163,21 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
             <small>{queued.length} selecionado{queued.length === 1 ? "" : "s"}</small>
           </div>
           {queued.length > 0 ? (
-            <ol>
+            <ol aria-label="Fila de execução">
               {queued.map((boss, index) => {
                 const result = status.results[boss.id];
                 const current = status.currentId === boss.id;
                 return (
-                  <li key={boss.id} className={`${current ? "current" : ""}${result ? ` ${result}` : ""}`}>
+                  <li key={boss.id} className={(current ? "current" : "") + (result ? " " + result : "")}>
                     <span className="lev-queue-index">{String(index + 1).padStart(2, "0")}</span>
                     <div className="lev-queue-name">
                       <strong>{boss.name}</strong>
                       <small>lvl {boss.minLevel} · {boss.rarity} · <QueueResult result={result} /></small>
                     </div>
                     <div className="lev-queue-controls">
-                      <button type="button" onClick={() => moveBoss(boss.id, -1)} disabled={index === 0} aria-label={`Subir ${boss.name}`}>Subir</button>
-                      <button type="button" onClick={() => moveBoss(boss.id, 1)} disabled={index === queued.length - 1} aria-label={`Descer ${boss.name}`}>Descer</button>
-                      <button type="button" onClick={() => removeBoss(boss.id)} aria-label={`Remover ${boss.name}`}>Remover</button>
+                      <button type="button" onClick={() => moveBoss(boss.id, -1)} disabled={index === 0} aria-label={"Subir " + boss.name}>Subir</button>
+                      <button type="button" onClick={() => moveBoss(boss.id, 1)} disabled={index === queued.length - 1} aria-label={"Descer " + boss.name}>Descer</button>
+                      <button type="button" onClick={() => removeBoss(boss.id)} aria-label={"Remover " + boss.name}>Remover</button>
                     </div>
                   </li>
                 );
@@ -200,8 +186,6 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
           ) : <p className="lev-empty-queue">Adicione bosses à fila para começar.</p>}
         </div>
       </div>
-
-      <p className="lev-boss-note">A extensão aguarda 90m de stamina, pula nível/cooldown incompatível e espera cargas. Não há presets nem preparação automática.</p>
     </section>
   );
 }

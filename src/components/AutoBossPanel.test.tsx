@@ -63,4 +63,17 @@ describe("AutoBossPanel", () => {
     expect(screen.getByRole("region", { name: "Auto Boss" }).className)
       .toContain("lev-auto-boss-embedded");
   });
+
+  test("keeps the embedded surface to two lists, state, start, and daily toggle", () => {
+    const settings: Settings = { ...defaults, autoBossIds: ["shadowpelt"] };
+    render(<AutoBossPanel settings={settings} status={status} onChange={vi.fn()} embedded />);
+
+    expect(screen.getAllByRole("list")).toHaveLength(2);
+    expect(screen.getByText("Estado atual")).toBeTruthy();
+    expect(screen.getByText("Parado")).toBeTruthy();
+    expect(screen.getByRole("button", { name: /iniciar auto boss/i })).toBeTruthy();
+    expect(screen.getByRole("switch", { name: /iniciar automaticamente/i })).toBeTruthy();
+    expect(screen.queryByText("Progresso")).toBeNull();
+    expect(screen.queryByText(/A extensÃ£o aguarda/)).toBeNull();
+  });
 });
