@@ -151,7 +151,7 @@ export function startBossMenuObserver(
   };
 
   const ensureStateHost = () => {
-    const waveHeader = doc.querySelector<HTMLElement>("#wave-hdr");
+    const waveHeader = doc.querySelector<HTMLElement>("#wave-hdr, .wave-hdr");
     if (!waveHeader || !isEnabled()) {
       removeStateNode();
       return;

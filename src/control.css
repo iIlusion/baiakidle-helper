@@ -93,7 +93,8 @@
 #boss-modal .boss-pane-leviticus { display: none; box-sizing: border-box; width: 100%; padding: 8px; }
 #boss-modal .boss-pane-leviticus.leviticus-boss-pane-active,
 #boss-modal .boss-pane-leviticus.active { display: block; }
-#wave-hdr .leviticus-wave-state {
+#wave-hdr .leviticus-wave-state,
+.wave-hdr .leviticus-wave-state {
   display: inline-flex;
   align-items: center;
   gap: 5px;
@@ -109,10 +110,14 @@
   font: 700 9px/1.1 "Manrope Variable", "Segoe UI", sans-serif;
   vertical-align: middle;
 }
-#wave-hdr .leviticus-wave-state-content { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
-#wave-hdr .leviticus-wave-state-content > span { color: #8992a4; }
-#wave-hdr .leviticus-wave-state-content strong { overflow: hidden; color: #b4a7ff; text-overflow: ellipsis; white-space: nowrap; }
-#wave-hdr .leviticus-wave-state-content small { overflow: hidden; color: #8992a4; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+#wave-hdr .leviticus-wave-state-content,
+.wave-hdr .leviticus-wave-state-content { display: inline-flex; align-items: center; gap: 5px; min-width: 0; }
+#wave-hdr .leviticus-wave-state-content > span,
+.wave-hdr .leviticus-wave-state-content > span { color: #8992a4; }
+#wave-hdr .leviticus-wave-state-content strong,
+.wave-hdr .leviticus-wave-state-content strong { overflow: hidden; color: #b4a7ff; text-overflow: ellipsis; white-space: nowrap; }
+#wave-hdr .leviticus-wave-state-content small,
+.wave-hdr .leviticus-wave-state-content small { overflow: hidden; color: #8992a4; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
 
 .baiak-control-head {
   position: sticky;

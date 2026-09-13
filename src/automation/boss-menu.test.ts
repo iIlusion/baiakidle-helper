@@ -10,7 +10,7 @@ import {
 
 function renderBossModal(className = ""): void {
   document.body.innerHTML = [
-    '<div id="wave-hdr">',
+    '<div class="wave-hdr">',
     '  <span id="wave-title">Infernal Demon</span>',
     '</div>',
     '<div id="boss-modal" class="' + className + '">',
@@ -51,7 +51,7 @@ describe("startBossMenuObserver", () => {
     expect(pane?.classList.contains("boss-pane")).toBe(true);
     expect(pane?.classList.contains("boss-pane-leviticus")).toBe(true);
     expect(panelHost?.parentElement).toBe(pane);
-    expect(stateHost?.parentElement?.id).toBe("wave-hdr");
+    expect(stateHost?.parentElement?.className).toBe("wave-hdr");
     expect(onHostChange).toHaveBeenLastCalledWith({ panel: panelHost, state: stateHost });
 
     observer.disconnect();

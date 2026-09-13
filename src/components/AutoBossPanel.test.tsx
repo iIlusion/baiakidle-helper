@@ -76,4 +76,11 @@ describe("AutoBossPanel", () => {
     expect(screen.queryByText("Progresso")).toBeNull();
     expect(screen.queryByText(/A extensÃ£o aguarda/)).toBeNull();
   });
+
+  test("keeps an empty queue as the second list", () => {
+    render(<AutoBossPanel settings={{ ...defaults, autoBossIds: [] }} status={status} onChange={vi.fn()} embedded />);
+
+    expect(screen.getAllByRole("list")).toHaveLength(2);
+    expect(screen.getByRole("list", { name: /Fila de exec/ })).toBeTruthy();
+  });
 });

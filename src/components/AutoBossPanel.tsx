@@ -162,9 +162,8 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
             <span>Fila de execução</span>
             <small>{queued.length} selecionado{queued.length === 1 ? "" : "s"}</small>
           </div>
-          {queued.length > 0 ? (
-            <ol aria-label="Fila de execução">
-              {queued.map((boss, index) => {
+          <ol aria-label="Fila de execução">
+            {queued.length > 0 ? queued.map((boss, index) => {
                 const result = status.results[boss.id];
                 const current = status.currentId === boss.id;
                 return (
@@ -181,9 +180,8 @@ export function AutoBossPanel({ settings, status, onChange, embedded = false }: 
                     </div>
                   </li>
                 );
-              })}
-            </ol>
-          ) : <p className="lev-empty-queue">Adicione bosses à fila para começar.</p>}
+              }) : <li className="lev-empty-queue">Adicione bosses à fila para começar.</li>}
+          </ol>
         </div>
       </div>
     </section>
