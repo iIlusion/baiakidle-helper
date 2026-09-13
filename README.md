@@ -1,80 +1,89 @@
 # Leviticus Extension
 
 [![Release](https://img.shields.io/github/v/release/iIlusion/baiakidle-helper?style=flat-square&logo=github&label=release)](https://github.com/iIlusion/baiakidle-helper/releases/latest)
-[![Discord](https://img.shields.io/badge/Discord-suporte-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.gg/Hy7HqcAgQG)
-[![GitHub Stars](https://img.shields.io/github/stars/iIlusion/baiakidle-helper?style=flat-square&logo=github&label=stars)](https://github.com/iIlusion/baiakidle-helper/stargazers)
+[![Site](https://img.shields.io/badge/site-leviticusbot.com-8d78ff?style=flat-square)](https://leviticusbot.com)
+[![Discord](https://img.shields.io/badge/Discord-entrar-5865F2?style=flat-square&logo=discord&logoColor=white)](https://discord.leviticusbot.com)
 [![License](https://img.shields.io/github/license/iIlusion/baiakidle-helper?style=flat-square&label=license)](LICENSE)
-[![Tampermonkey](https://img.shields.io/badge/Tampermonkey-userscript-00485B?style=flat-square&logo=tampermonkey&logoColor=white)](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js)
-Userscript para Tampermonkey que adiciona ao [BaiakIdle](https://baiakidle.com/jogar/) um painel integrado à interface do jogo.
 
-## Recursos
+O antigo Baiakidle Helper agora é o **Leviticus Extension**. A extensão faz parte do ecossistema Leviticus e adiciona automações próprias à sessão do [BaiakIdle](https://baiakidle.com/jogar/).
 
-### Loot & inventário
+[Conhecer o Leviticus](https://leviticusbot.com) · [Entrar no Discord](https://discord.leviticusbot.com) · [Instalar a versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js)
 
-- **Auto Sell:** envia `sell all` quando o Loot Pouch atinge a % configurada (slider 1–100%; padrão **90%**). Com **Auto Transfer** ligado, move as raridades marcadas para o backpack **antes** de vender (ignora o cooldown do loop de transfer).
-- **Open All Glooth Bag:** abre todas as Glooth Bags quando existe espaço e a venda não está em cooldown.
-- **Auto Sell Supply Potions:** move potions da Supply Pouch para a Loot Pouch e vende (`sell all`). Filtros opcionais:
-  - só no Treino online;
-  - só sem Glooth Bag no backpack;
-  - só com Loot Pouch vazia.
-- **Auto Transfer:** move itens da Loot Pouch para o Backpack por raridade (Rare / Epic / Legendary / Mythical).
+## O que a extensão faz
 
-### Hunt & stamina
+### Loot e inventário
 
-- **Auto Hunt:** na cidade, entra na hunt escolhida no catálogo (pacote de stage + fallback DOM).
-- **Treino ↔ Hunt por stamina:** com Auto Hunt ligado, roteia automaticamente:
-  - stamina ≤ limiar (padrão **378 min / 6h18m**, 15% de 42h) → vai ao Treino online e **só depois** esvazia a Loot Pouch (transfer de raridades + `sell all`, aguardando cooldown até vender). O default evita hunt com **0.5× XP e gold** (penalidade com stamina abaixo de 15%); pouch vazia libera open glooth / sell potions no Treino;
-  - stamina ≥ limiar (padrão **42h**, máx. 42h / 2520 min) → volta à hunt alvo.
+- **Auto Sell:** vende quando a Loot Pouch chega ao limite configurado.
+- **Auto Transfer:** envia itens da Loot Pouch para o Backpack por raridade.
+- **Open All Glooth Bag:** abre as bags quando há espaço disponível.
+- **Auto Sell Supply Potions:** organiza e vende as potions da Supply Pouch.
 
-### Auto Boss
+### Hunt e stamina
 
-- **Fila própria:** o Leviticus Extension permite listar, adicionar, reordenar, remover, iniciar e parar bosses diretamente no painel.
-- **Início automático:** opcionalmente inicia uma vez por dia às **00h de Brasília**, quando houver fila e condições suficientes.
-- **Execução enxuta:** aguarda pelo menos **90 minutos de stamina**, ignora bosses incompatíveis por nível ou cooldown, espera charges e continua após recarregar a página.
-- **Sem presets:** não usa o Auto Boss nativo, presets, preparação ou AutoBuild. A extensão envia somente o fluxo normal de entrada em boss e presença na cidade, com estado e resultado controlados pelo runner próprio.
+- **Auto Hunt:** escolhe a hunt configurada e inicia o fluxo pelo catálogo do jogo.
+- **Treino automático:** alterna entre hunt e Treino online conforme a stamina.
+- A rota pode transferir itens e vender a pouch antes de voltar à hunt.
 
-### Sessão, market e desempenho
+### Auto Boss próprio
 
-- **Auto Reconnect:**
-  - **Homepage:** só path exato `/` (não outras páginas `/*`) → `/jogar` após **10s**.
-  - **Manutenção:** em `/` com “Em Manutenção” → vai a `/jogar`; no modal “JOGO EM MANUTENÇÃO” faz refresh a cada **30s** e detecta se o overlay sumiu.
-  - **Limite de contas simultâneas / takeover:** detecta o overlay e tenta de novo a cada **10s**.
-  - **Pause (sessão):** mini-bar na home/site pausa o auto reconnect até retomar (sessionStorage).
-  - Queda / stuck.
-- **Auto Market Announce:** `aucshare` no chat Market; coleta IDs sozinha (Market invisível → Meus anúncios → Vitrine → fecha), **sem** Bearer/token da extensão (evita SESSÃO EXPIRADA).
-- **Loot vendido (Hunt Analyzer):** modo Sessão = textos de venda (g+mg) + gold drop direto (`fx`); modo Jogo = nativo.
-- **Modo leve (sem VFX):** bloqueia pacotes `fx` antes do Pixi (magias, projéteis e efeitos) para reduzir freeze em combate.
+O Leviticus Extension tem um Auto Boss próprio dentro do modal de Bosses do jogo. Ele não usa o Auto Boss nativo, presets, preparação ou AutoBuild.
 
-### Interface
+Você pode:
 
-- **Painel Leviticus:** botão **Leviticus** na barra de abas do jogo; preferências salvas no navegador (`localStorage`).
-- **Auto Boss próprio:** fila editável de bosses, início/parada manual e início automático diário à 00h no horário de Brasília. O runner aguarda stamina e charges usando o estado refletido da sala, sem presets, preparação ou AutoBuild.
-- **MCP opcional:** na build de desenvolvimento, uma aba explica como conectar o jogo ao Codex; a bridge **não** é necessária para a automação.
+- montar a lista de bosses;
+- arrastar os cards para trocar a ordem;
+- remover bosses da fila;
+- iniciar e parar a execução;
+- ativar o início automático diário às **00:00 no horário de Brasília**.
 
-Por padrão, **Auto Sell** e **Open All Glooth Bag** começam ligados. As demais opções ficam desligadas até você ativá-las no painel.
+A extensão mostra o estado atual no cabeçalho da wave e continua usando a conexão já aberta pelo jogo.
+
+### Sessão e interface
+
+- **Auto Reconnect:** tenta recuperar a sessão em quedas, manutenção e limite de contas.
+- **Auto Market Announce:** publica anúncios no Market usando o fluxo normal da página.
+- **Modo leve:** reduz efeitos visuais que podem pesar durante o combate.
+- **Painel Leviticus:** concentra as opções na nova aba Leviticus e salva as preferências no navegador.
+
+Por padrão, **Auto Sell** e **Open All Glooth Bag** começam ligados. As outras automações ficam desligadas até você ativá-las.
 
 ## Instalação
 
-1. Instale o [Tampermonkey](https://www.tampermonkey.net/) no navegador.
-2. Ative a permissão **Allow User Scripts** nas configurações da extensão, caso o navegador a exija.
-3. [Instale a versão mais recente do Leviticus Extension](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js).
-4. Abra ou recarregue `https://baiakidle.com/jogar/`.
-5. Use a nova aba **Leviticus** na barra superior do jogo.
+### Instalação normal
 
-O estado de cada opção é salvo em `localStorage` e pode ser alterado a qualquer momento no painel.
+1. Instale o [Tampermonkey](https://www.tampermonkey.net/) no seu navegador.
+2. Se o navegador pedir a permissão **Allow User Scripts**, ative-a para o Tampermonkey.
+3. Abra o instalador oficial: [baixar Leviticus Extension](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js).
+4. Na tela do Tampermonkey, confira se o nome é **Leviticus Extension** e clique em **Install**.
+5. Abra o [BaiakIdle](https://baiakidle.com/jogar/) e recarregue a página depois que o script terminar de instalar.
+6. Na barra superior do jogo, abra a aba **Leviticus**.
 
-### Atualizações automáticas
+Na primeira execução de cada versão, a extensão mostra um aviso sobre a mudança de nome. Depois que você fechar o aviso, ele não volta a aparecer nas recargas da mesma versão. Ele aparece novamente quando uma versão nova é instalada.
 
-A partir da versão `1.0.2`, o Tampermonkey verifica `releases/latest` e instala novas versões automaticamente conforme a frequência configurada na extensão.
+### Se você já usava o Baiakidle Helper
 
-Se você usa a versão `1.0.1` ou anterior, instale a [versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js) manualmente uma vez para ativar o auto-update.
+O Tampermonkey pode manter a cópia antiga separada por causa da mudança de nome. Para evitar duas automações rodando ao mesmo tempo:
 
-## Suporte e contato
+1. Abra o painel do Tampermonkey.
+2. Desative ou remova o script antigo **Baiakidle Helper**, se ele ainda estiver listado.
+3. Deixe apenas o **Leviticus Extension** ativo.
+4. Recarregue a página do jogo.
 
-Precisa de ajuda, encontrou um bug ou quer sugerir uma melhoria?
+### Atualizações
 
-- [Entre no Discord](https://discord.gg/Hy7HqcAgQG) para suporte e contato direto.
-- [Abra uma issue](https://github.com/iIlusion/baiakidle-helper/issues) para problemas reproduzíveis e acompanhamento público.
+A instalação oficial já configura o endereço de atualização do Tampermonkey. O navegador verifica novas releases de acordo com o intervalo definido pelo próprio Tampermonkey.
+
+Se quiser atualizar manualmente, abra novamente o [instalador da versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js) e confirme a atualização no Tampermonkey.
+
+### A aba Leviticus não apareceu
+
+Confira estes pontos:
+
+- o Tampermonkey está ativo no navegador;
+- o script **Leviticus Extension** está habilitado;
+- a permissão **Allow User Scripts** está ativa, quando disponível;
+- o script antigo e o loader de desenvolvimento não estão rodando junto com a versão normal;
+- a página foi recarregada depois da instalação.
 
 ## Desenvolvimento
 
@@ -87,24 +96,24 @@ npm install
 npm run build
 ```
 
-O build gera localmente os userscripts em `dist/` (a pasta é ignorada pelo Git):
+O build gera os userscripts locais em `dist/`:
 
-- `dist/baiakidle-helper.user.js`: versão de produção;
+- `dist/baiakidle-helper.user.js`: versão normal, pronta para instalar no Tampermonkey;
 - `dist/baiakidle-helper.dev.user.js`: loader para desenvolvimento local.
 
 Para trabalhar com atualização contínua:
 
 1. Instale `dist/baiakidle-helper.dev.user.js` no Tampermonkey.
-2. Desative a versão de produção para não carregar duas cópias.
+2. Desative a versão normal para não carregar duas cópias.
 3. Execute:
 
 ```bash
 npm run dev
 ```
 
-4. Recarregue a página após uma alteração. O loader busca o bundle atual em `http://127.0.0.1:8946` sem precisar ser reinstalado.
+4. Recarregue a página depois de cada alteração. O loader busca o bundle atual em `http://127.0.0.1:8946`.
 
-Comandos disponíveis:
+Comandos principais:
 
 ```bash
 npm run dev        # build em watch mode + servidor local na porta 8946
@@ -113,56 +122,17 @@ npm run typecheck  # valida o TypeScript sem gerar arquivos
 npm run test       # checagens leves (ex.: catálogo / rates)
 ```
 
-## Desenvolvimento com MCP
+## MCP opcional
 
-O Leviticus Extension funciona sozinho. Para analisar DOM, fetch/XHR e pacotes WebSocket com o Codex, use o projeto separado [baiakidle-mcp](https://github.com/iIlusion/baiakidle-mcp).
+A extensão funciona sozinha. Para inspecionar o DOM, as requisições e os pacotes WebSocket do jogo com o Codex, use o projeto separado [baiakidle-mcp](https://github.com/iIlusion/baiakidle-mcp).
 
-A aba **Desenvolvimento** (build dev) também mostra o estado da bridge e um exemplo de configuração do Codex. Essa separação mantém a extensão principal pequena e evita capturar tráfego quando as ferramentas de desenvolvimento não estão sendo usadas.
-
-## Estrutura
-
-```text
-src/
-  control.tsx              painel React e wiring das opções
-  control.css              aparência integrada ao jogo
-  analyzers.ts             melhorias de analyzers / loot gold
-  packets.ts               payloads base64 (sell, open, supplymove, …)
-  rate.ts                  parsing de rates / gold de venda
-  socket.ts                transporte WebSocket do Leviticus Extension
-  socket-role.ts           identificação do socket de gameplay
-  ws-filter.ts             filtro de pacotes (modo leve / VFX)
-  automation/
-    settings.ts            load/save de preferências
-    scheduler.ts           tick unificado (hunt → transfer → sell → …)
-    auto-boss.ts           runner próprio de Auto Boss
-    room-state.ts          espelho do estado refletido da sala
-    hunt.ts                auto hunt + rota treino/stamina
-    transfer.ts            auto transfer por raridade
-    reconnect.ts           auto reconnect
-    market-announce.ts     auto market announce
-    state.ts               leitura de inventário / stamina / mundo
-  data/
-    hunts.ts               catálogo de hunts
-    hunt-catalog.json
-    bosses.ts              catálogo e validação da fila de bosses
-    boss-catalog.json
-  components/
-    AutoBossPanel.tsx      fila e controles do Auto Boss
-    LeviticusMark.tsx      marca inline da interface
-  components/ui/switch.tsx
-scripts/
-  dev.mjs
-  add-userscript-banner.mjs
-  check-rates.mjs
-dist/                      userscripts locais, publicados apenas nos releases
-docs/                      notas locais de reverse (ignorado no Git)
-```
+A bridge é uma ferramenta de desenvolvimento. Ela não é necessária para usar as automações do Leviticus Extension.
 
 ## Privacidade e uso
 
-O Leviticus Extension roda em `https://baiakidle.com/*` (match do userscript). Ele não envia telemetria nem depende de um servidor externo; as preferências ficam no próprio navegador. Os comandos automatizados usam a conexão já aberta pela página.
+O Leviticus Extension roda apenas nas páginas do BaiakIdle correspondentes ao userscript. As preferências ficam no `localStorage` do navegador. A extensão não envia telemetria nem depende de um servidor externo para executar as automações.
 
-Use somente na sua própria sessão e verifique as regras do jogo. Este é um projeto independente, sem vínculo oficial com BaiakIdle.
+Este é um projeto independente, sem vínculo oficial com o BaiakIdle. Use-o na sua própria sessão e verifique as regras do jogo.
 
 ## Licença
 
