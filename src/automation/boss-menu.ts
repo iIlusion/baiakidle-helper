@@ -1,16 +1,61 @@
-export const AUTO_BOSS_MENU_HOST_ID = "leviticus-auto-boss-menu";
-export const AUTO_BOSS_TAB_HIDDEN_CLASS = "leviticus-auto-boss-tab-hidden";
-export const NATIVE_AUTO_BOSS_HIDDEN_CLASS = "leviticus-native-auto-boss-hidden";
+export const LEVITICUS_BOSS_TAB_ID = "leviticus-boss-tab";
+export const LEVITICUS_BOSS_PANE_ID = "leviticus-boss-pane";
+export const LEVITICUS_BOSS_HOST_ID = "leviticus-auto-boss-menu";
+export const LEVITICUS_BOSS_STATE_ID = "leviticus-wave-state";
 
-type HostChange = (host: HTMLElement | null) => void;
+const TAB_ACTIVE_CLASS = "leviticus-boss-tab-active";
+const PANE_ACTIVE_CLASS = "leviticus-boss-pane-active";
+
+export type BossMenuHosts = {
+  panel: HTMLElement | null;
+  state: HTMLElement | null;
+};
+
+type HostChange = (hosts: BossMenuHosts) => void;
 
 function isModalOpen(modal: HTMLElement): boolean {
   return !modal.hidden && !modal.classList.contains("hidden");
 }
 
-function findAutoBossTab(modal: HTMLElement): HTMLButtonElement | undefined {
-  return [...modal.querySelectorAll<HTMLButtonElement>(".sp-cats .sp-cat")]
-    .find(button => button.textContent?.trim() === "Auto Boss");
+function removeNode(node: HTMLElement | null): void {
+  node?.remove();
+}
+
+function createTab(doc: Document): HTMLButtonElement {
+  const tab = doc.createElement("button");
+  tab.id = LEVITICUS_BOSS_TAB_ID;
+  tab.type = "button";
+  tab.className = "sp-cat leviticus-boss-tab";
+  tab.textContent = "Leviticus";
+  tab.setAttribute("aria-controls", LEVITICUS_BOSS_PANE_ID);
+  tab.setAttribute("aria-selected", "false");
+  return tab;
+}
+
+function createPane(doc: Document): HTMLDivElement {
+  const pane = doc.createElement("div");
+  pane.id = LEVITICUS_BOSS_PANE_ID;
+  pane.className = "boss-pane boss-pane-leviticus";
+  pane.setAttribute("role", "tabpanel");
+  pane.setAttribute("aria-labelledby", LEVITICUS_BOSS_TAB_ID);
+  pane.setAttribute("aria-hidden", "true");
+  return pane;
+}
+
+function createPanelHost(doc: Document): HTMLDivElement {
+  const host = doc.createElement("div");
+  host.id = LEVITICUS_BOSS_HOST_ID;
+  host.className = "lev-auto-boss-host";
+  return host;
+}
+
+function createStateHost(doc: Document): HTMLSpanElement {
+  const host = doc.createElement("span");
+  host.id = LEVITICUS_BOSS_STATE_ID;
+  host.className = "leviticus-wave-state";
+  host.setAttribute("role", "status");
+  host.setAttribute("aria-live", "polite");
+  return host;
 }
 
 export type BossMenuObserver = {
@@ -18,95 +63,161 @@ export type BossMenuObserver = {
   disconnect: () => void;
 };
 
-/** Keeps the extension-owned panel mounted in the game's real boss modal. */
+/** Owns only the Leviticus category, pane, panel host, and wave state label. */
 export function startBossMenuObserver(
   doc: Document,
   isEnabled: () => boolean,
   onHostChange: HostChange
 ): BossMenuObserver {
-  let host: HTMLDivElement | null = null;
-  let pane: HTMLElement | null = null;
+  let tab: HTMLButtonElement | null = null;
+  let pane: HTMLDivElement | null = null;
+  let panelHost: HTMLDivElement | null = null;
+  let stateHost: HTMLSpanElement | null = null;
   let observedModal: HTMLElement | null = null;
   let modalChildObserver: MutationObserver | null = null;
   let modalAttributeObserver: MutationObserver | null = null;
+  let customActive = false;
+  let lastPanel: HTMLElement | null = null;
+  let lastState: HTMLElement | null = null;
+  let sync: () => void;
 
-  const removeHost = () => {
-    if (!host) return;
-    host.remove();
-    host = null;
+  const notify = (nextPanel: HTMLElement | null, nextState: HTMLElement | null) => {
+    if (lastPanel === nextPanel && lastState === nextState) return;
+    lastPanel = nextPanel;
+    lastState = nextState;
+    onHostChange({ panel: nextPanel, state: nextState });
+  };
+
+  const applyActiveState = () => {
+    if (!tab || !pane) return;
+    tab.classList.toggle(TAB_ACTIVE_CLASS, customActive);
+    tab.classList.toggle("active", customActive);
+    tab.setAttribute("aria-selected", String(customActive));
+    pane.classList.toggle(PANE_ACTIVE_CLASS, customActive);
+    pane.classList.toggle("active", customActive);
+    pane.setAttribute("aria-hidden", String(!customActive));
+  };
+
+  const deactivate = () => {
+    customActive = false;
+    applyActiveState();
+  };
+
+  const activate = (event: Event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    customActive = true;
+    applyActiveState();
+  };
+
+  const modalClick = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    if (target.closest("#" + LEVITICUS_BOSS_TAB_ID)) return;
+    if (target.closest(".sp-cat")) deactivate();
+  };
+
+  const removePanelNodes = () => {
+    removeNode(tab);
+    removeNode(pane);
+    tab = null;
     pane = null;
-    onHostChange(null);
+    panelHost = null;
+    customActive = false;
+  };
+
+  const removeStateNode = () => {
+    removeNode(stateHost);
+    stateHost = null;
   };
 
   const observeModal = (modal: HTMLElement | null) => {
     if (observedModal === modal) return;
     modalChildObserver?.disconnect();
     modalAttributeObserver?.disconnect();
+    observedModal = modal;
     modalChildObserver = null;
     modalAttributeObserver = null;
-    observedModal = modal;
     if (!modal) return;
 
-    // Descendants rerender, but their combat class churn is unrelated to this mount point.
-    modalChildObserver = new MutationObserver(sync);
+    modal.addEventListener("click", modalClick);
+    modalChildObserver = new MutationObserver(() => sync());
     modalChildObserver.observe(modal, { childList: true, subtree: true });
-    modalAttributeObserver = new MutationObserver(sync);
+    modalAttributeObserver = new MutationObserver(() => sync());
     modalAttributeObserver.observe(modal, {
       attributes: true,
       attributeFilter: ["class", "hidden"]
     });
   };
 
-  const sync = () => {
-    const modal = doc.querySelector<HTMLElement>("#boss-modal");
-    const autoPane = modal?.querySelector<HTMLElement>(".boss-pane-auto") ?? null;
-    const nativePanel = autoPane?.querySelector<HTMLElement>(".boss-autoboss");
-    const autoTab = modal ? findAutoBossTab(modal) : undefined;
-    const enabled = isEnabled();
+  const ensureStateHost = () => {
+    const waveHeader = doc.querySelector<HTMLElement>("#wave-hdr");
+    if (!waveHeader || !isEnabled()) {
+      removeStateNode();
+      return;
+    }
+    const existing = waveHeader.querySelector<HTMLSpanElement>("#" + LEVITICUS_BOSS_STATE_ID);
+    if (existing) {
+      stateHost = existing;
+      return;
+    }
+    stateHost = createStateHost(doc);
+    waveHeader.append(stateHost);
+  };
 
-    observeModal(modal);
-
-    nativePanel?.classList.add(NATIVE_AUTO_BOSS_HIDDEN_CLASS);
-    autoTab?.classList.toggle(AUTO_BOSS_TAB_HIDDEN_CLASS, !enabled);
-
-    if (!enabled || !modal || !autoPane || !isModalOpen(modal)) {
-      removeHost();
+  const ensurePanelNodes = (modal: HTMLElement) => {
+    const categories = modal.querySelector<HTMLElement>(".sp-cats");
+    const panes = modal.querySelector<HTMLElement>(".boss-panes");
+    if (!categories || !panes || !isModalOpen(modal) || !isEnabled()) {
+      removePanelNodes();
       return;
     }
 
-    if (host && (!host.isConnected || pane !== autoPane || host.parentElement !== autoPane)) {
-      removeHost();
-    }
-    if (host) return;
+    const existingTab = categories.querySelector<HTMLButtonElement>("#" + LEVITICUS_BOSS_TAB_ID);
+    const existingPane = panes.querySelector<HTMLDivElement>("#" + LEVITICUS_BOSS_PANE_ID);
+    tab = existingTab ?? createTab(doc);
+    pane = existingPane ?? createPane(doc);
+    if (!existingTab) categories.append(tab);
+    if (!existingPane) panes.append(pane);
 
-    host = doc.createElement("div");
-    host.id = AUTO_BOSS_MENU_HOST_ID;
-    host.className = "lev-auto-boss-host";
-    pane = autoPane;
-    autoPane.append(host);
-    onHostChange(host);
+    const existingHost = pane.querySelector<HTMLDivElement>("#" + LEVITICUS_BOSS_HOST_ID);
+    panelHost = existingHost ?? createPanelHost(doc);
+    if (!existingHost) pane.append(panelHost);
+
+    if (!tab.dataset.leviticusBound) {
+      tab.addEventListener("click", activate);
+      tab.dataset.leviticusBound = "true";
+    }
+    applyActiveState();
   };
 
-  const mutationObserver = new MutationObserver(sync);
+  sync = () => {
+    const modal = doc.querySelector<HTMLElement>("#boss-modal");
+    observeModal(modal);
+    ensureStateHost();
+    if (modal) ensurePanelNodes(modal);
+    else removePanelNodes();
+    notify(panelHost, stateHost);
+  };
+
+  const bodyObserver = new MutationObserver(() => sync());
   const observationRoot = doc.body ?? doc.documentElement;
-  mutationObserver.observe(observationRoot, {
-    subtree: true,
-    childList: true
-  });
+  bodyObserver.observe(observationRoot, { subtree: true, childList: true });
   sync();
 
   return {
     sync,
     disconnect: () => {
-      mutationObserver.disconnect();
+      bodyObserver.disconnect();
       modalChildObserver?.disconnect();
       modalAttributeObserver?.disconnect();
+      if (observedModal) observedModal.removeEventListener("click", modalClick);
       modalChildObserver = null;
       modalAttributeObserver = null;
       observedModal = null;
-      doc.querySelector<HTMLElement>(".boss-autoboss")?.classList.remove(NATIVE_AUTO_BOSS_HIDDEN_CLASS);
-      doc.querySelector<HTMLElement>(`.${AUTO_BOSS_TAB_HIDDEN_CLASS}`)?.classList.remove(AUTO_BOSS_TAB_HIDDEN_CLASS);
-      removeHost();
+      removePanelNodes();
+      removeStateNode();
+      notify(null, null);
     }
   };
 }
