@@ -64,7 +64,7 @@ for (let i = 1; i < HUNTS.length; i++) {
 const { clampStaminaMinutes, formatStaminaMinutes, defaults } = await import("../src/automation/settings.ts");
 assert.equal(clampStaminaMinutes(60), 60);
 assert.equal(clampStaminaMinutes(0), 1);
-assert.equal(clampStaminaMinutes(99999), 48 * 60);
+assert.equal(clampStaminaMinutes(99999), 42 * 60);
 assert.equal(formatStaminaMinutes(60), "1h");
 assert.equal(formatStaminaMinutes(90), "1h30m");
 assert.equal(formatStaminaMinutes(45), "45m");

@@ -100,6 +100,11 @@ export function stagePacket(huntId: string): string {
   return packRoomRecord("stage", ["huntId"], [packStr(huntId)]);
 }
 
+/** Enter one boss manually; the extension owns the queue that decides when to call this. */
+export function bossPacket(bossId: string, fromCity: boolean): string {
+  return packRoomRecord("boss", ["bossId", "fromCity"], [packStr(bossId), packBool(fromCity)]);
+}
+
 /** Return to city — server only accepts from party leader. */
 export function toCityPacket(): string {
   return packRoomRecord("tocity", [], []);

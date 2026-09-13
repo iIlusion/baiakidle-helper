@@ -1,8 +1,16 @@
 import {
   OPEN_ALL_GLOOTH_BAGS_BASE64,
+  bossPacket,
+  cityPresencePacket,
   supplyMoveToLootPacket
 } from "../packets";
 import { sendRawPacket } from "../socket";
+import {
+  autoBossClaimsNavigation,
+  AutoBossRunner,
+  maybeStartAtMidnight
+} from "./auto-boss";
+import { readBossRoomSnapshot, startRoomStateMirror } from "./room-state";
 import type { Settings } from "./settings";
 import { isHuntEntering, maybeStaminaHuntRoute, runAutoHunt } from "./hunt";
 import {
@@ -25,7 +33,17 @@ type SupplyPotionJob = { movedAt: number; sold: boolean };
 
 export type SchedulerApi = {
   getSettings: () => Settings;
+  persist?: (next: Settings) => void;
 };
+
+const autoBossRunner = new AutoBossRunner({
+  sendBoss: (bossId, fromCity) => sendRawPacket(bossPacket(bossId, fromCity)),
+  sendCityPresence: away => sendRawPacket(cityPresencePacket(away))
+});
+
+export function readAutoBossView(settings: Settings) {
+  return autoBossRunner.view(settings, readBossRoomSnapshot());
+}
 
 function supplyPotionGuardsPass(
   settings: Settings,
@@ -42,26 +60,39 @@ function supplyPotionGuardsPass(
 /** Unified automation tick: hunt → transfer → sell → open glooth → supply potions. */
 export function startScheduler(api: SchedulerApi): void {
   const page = unsafeWindow;
+  startRoomStateMirror();
   let sellInFlight = false;
   let lastSellAttemptAt = 0;
   let openLatched = false;
   let supplyPotionJob: SupplyPotionJob | null = null;
 
   page.setInterval(() => {
-    const settings = api.getSettings();
+    let settings = api.getSettings();
     const doc = page.document;
-    const navBusy = isHuntEntering();
+    const tickAt = Date.now();
+    const persistAutoBoss = (patch: Partial<Settings>): void => {
+      const next = { ...api.getSettings(), ...patch };
+      api.persist?.(next);
+      settings = next;
+    };
+    const dailyPatch = maybeStartAtMidnight(settings, readBossRoomSnapshot(), tickAt);
+    if (dailyPatch) persistAutoBoss(dailyPatch);
+    settings = api.getSettings();
+    autoBossRunner.tick(settings, readBossRoomSnapshot(), persistAutoBoss, tickAt);
+    settings = api.getSettings();
+    const autoBossBusy = autoBossClaimsNavigation(settings, autoBossRunner);
+    const navBusy = isHuntEntering() || autoBossBusy;
     const sellBusy = isSelling() || isTransferring() || sellInFlight;
 
     if (
       settings.autoHunt &&
       settings.autoHuntTreinoOnLowStamina &&
-      !isHuntEntering()
+      !isHuntEntering() && !autoBossBusy
     ) {
       void maybeStaminaHuntRoute(settings, doc);
     }
 
-    if (settings.autoHunt && !isHuntEntering()) {
+    if (settings.autoHunt && !isHuntEntering() && !autoBossBusy) {
       void runAutoHunt(settings, doc);
     }
 

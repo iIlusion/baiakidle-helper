@@ -1,4 +1,4 @@
-import rawBosses from "./boss-catalog.json";
+import rawBosses from "./boss-catalog.json" with { type: "json" };
 
 export type BossRarity = "bane" | "archfoe" | "nemesis";
 

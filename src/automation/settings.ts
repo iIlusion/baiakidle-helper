@@ -1,4 +1,4 @@
-import { bossById, parseAutoBossIds } from "../data/bosses";
+import { bossById, parseAutoBossIds } from "../data/bosses.ts";
 
 export type TransferTiers = {
   rare: boolean;
