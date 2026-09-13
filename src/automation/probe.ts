@@ -83,7 +83,7 @@ export function startTeleportProbe(): void {
     const detail =
       `type=${type} ws=${url} ${statusLine(doc)} hex=${hexHead(bytes)}`;
     pushEvent(api, "out", detail);
-    console.info(`[BaiakIdle Helper][probe-out] ${detail}`);
+    console.info(`[Leviticus Extension][probe-out] ${detail}`);
   });
 
   const wave = doc.getElementById("wave-title");
@@ -95,7 +95,7 @@ export function startTeleportProbe(): void {
       last = next;
       const detail = `"${next.trim()}" ${statusLine(doc)}`;
       pushEvent(api, "wave", detail);
-      console.info(`[BaiakIdle Helper][probe-wave] ${detail}`);
+      console.info(`[Leviticus Extension][probe-wave] ${detail}`);
     });
     obs.observe(wave, { childList: true, characterData: true, subtree: true });
   }
@@ -117,14 +117,14 @@ export function startTeleportProbe(): void {
     (bodyObs as MutationObserver & { __lastOpts?: string }).__lastOpts = key;
     const detail = `opts=[${opts.join(", ")}] ${statusLine(doc)}`;
     pushEvent(api, "menu", detail);
-    console.info(`[BaiakIdle Helper][probe-menu] ${detail}`);
+      console.info(`[Leviticus Extension][probe-menu] ${detail}`);
   });
   bodyObs.observe(doc.documentElement, { childList: true, subtree: true });
 
   const boot = statusLine(doc);
   pushEvent(api, "boot", boot);
   console.info(
-    `[BaiakIdle Helper][probe] ready. Manual: sair do Treino → abrir Teleportes → Treino online. ` +
+    `[Leviticus Extension][probe] ready. Manual: sair do Treino → abrir Teleportes → Treino online. ` +
       `Console: [probe-out]/[probe-wave]/[probe-menu]. DevTools: window.__baiakProbe.dump(). ${boot}`
   );
 }

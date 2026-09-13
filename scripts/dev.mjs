@@ -21,7 +21,7 @@ const server = createServer(async (request, response) => {
 });
 
 server.listen(8946, "127.0.0.1", () => {
-  console.log("[baiakidle-helper] http://127.0.0.1:8946/baiakidle-helper.user.js");
+  console.log("[Leviticus Extension] http://127.0.0.1:8946/baiakidle-helper.user.js");
 });
 
 async function close() {

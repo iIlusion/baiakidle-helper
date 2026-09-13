@@ -8,7 +8,7 @@ export default defineConfig(({ mode }) => ({
   build: {
     lib: {
       entry: "src/control.tsx",
-      name: "BaiakIdleHelper",
+      name: "LeviticusExtension",
       formats: ["iife"],
       fileName: () => mode === "development" ? "baiakidle-helper.dev.js" : "baiakidle-helper.user.js"
     },

@@ -96,7 +96,7 @@ export async function runAutoTransfer(
   }
   if (moved > 0) {
     console.info(
-      `[BaiakIdle Helper] auto transfer: ${moved} item(s) → backpack${force ? " (pre-sell)" : ""}`
+      `[Leviticus Extension] auto transfer: ${moved} item(s) → backpack${force ? " (pre-sell)" : ""}`
     );
   }
   return moved;

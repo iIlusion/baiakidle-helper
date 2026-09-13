@@ -160,7 +160,7 @@ async function enterHuntViaDom(doc: Document, huntId: string, huntName: string):
 async function goToTreinoViaDom(doc: Document): Promise<boolean> {
   const wave = doc.getElementById("wave-title");
   if (!wave) {
-    console.warn("[BaiakIdle Helper] treino DOM: #wave-title missing");
+    console.warn("[Leviticus Extension] treino DOM: #wave-title missing");
     return false;
   }
 
@@ -171,7 +171,7 @@ async function goToTreinoViaDom(doc: Document): Promise<boolean> {
   if (pickerClose) click(pickerClose);
 
   click(wave);
-  console.info("[BaiakIdle Helper] treino DOM: opened teleport via #wave-title");
+  console.info("[Leviticus Extension] treino DOM: opened teleport via #wave-title");
 
   const exerciseBtn = await waitForSelector(
     doc,
@@ -181,11 +181,11 @@ async function goToTreinoViaDom(doc: Document): Promise<boolean> {
 
   if (exerciseBtn) {
     if ((exerciseBtn as HTMLButtonElement).disabled) {
-      console.warn("[BaiakIdle Helper] treino DOM: data-tp=exercise is disabled");
+      console.warn("[Leviticus Extension] treino DOM: data-tp=exercise is disabled");
       return false;
     }
     const ok = click(exerciseBtn);
-    console.info(`[BaiakIdle Helper] treino DOM: click data-tp=exercise → ${ok}`);
+    console.info(`[Leviticus Extension] treino DOM: click data-tp=exercise → ${ok}`);
     return ok;
   }
 
@@ -194,7 +194,7 @@ async function goToTreinoViaDom(doc: Document): Promise<boolean> {
   );
   if (byText) {
     const ok = click(byText);
-    console.info(`[BaiakIdle Helper] treino DOM: click by text → ${ok}`);
+    console.info(`[Leviticus Extension] treino DOM: click by text → ${ok}`);
     return ok;
   }
 
@@ -204,7 +204,7 @@ async function goToTreinoViaDom(doc: Document): Promise<boolean> {
     return `${el.dataset.tp ?? "?"}:${(el.textContent ?? "").trim()}`;
   });
   console.warn(
-    `[BaiakIdle Helper] treino DOM: exercise button not found. menu=${Boolean(menu)} ` +
+    `[Leviticus Extension] treino DOM: exercise button not found. menu=${Boolean(menu)} ` +
       `menuHtml=${menu ? "yes" : "no"} opts=[${opts.join(", ")}]`
   );
   return false;
@@ -242,17 +242,17 @@ async function enterHuntNativeOrDom(
     }
     const sent = sendRawPacket(stagePacket(huntId));
     console.info(
-      `[BaiakIdle Helper] auto hunt: ${label} stage ${huntId} (${huntName}) sent=${sent} ` +
+      `[Leviticus Extension] auto hunt: ${label} stage ${huntId} (${huntName}) sent=${sent} ` +
         `wave="${waveTitle(doc)}" city=${isInCity(doc)}`
     );
     if (!sent) return false;
     if (await confirmHuntEnter(doc, huntName, timeoutMs)) {
       lastHuntId = huntId;
-      console.info(`[BaiakIdle Helper] auto hunt: stage confirmed → "${waveTitle(doc)}"`);
+      console.info(`[Leviticus Extension] auto hunt: stage confirmed → "${waveTitle(doc)}"`);
       return true;
     }
     console.info(
-      `[BaiakIdle Helper] auto hunt: stage not confirmed after ${timeoutMs}ms ` +
+      `[Leviticus Extension] auto hunt: stage not confirmed after ${timeoutMs}ms ` +
         `(wave="${waveTitle(doc)}" city=${isInCity(doc)})`
     );
     return false;
@@ -262,10 +262,10 @@ async function enterHuntNativeOrDom(
   if (await tryStage("WS-retry", HUNT_RETRY_CONFIRM_MS)) return true;
 
   if (!gameplayConnected()) {
-    console.info("[BaiakIdle Helper] auto hunt: no room WS — DOM fallback");
+    console.info("[Leviticus Extension] auto hunt: no room WS — DOM fallback");
   } else {
     console.info(
-      `[BaiakIdle Helper] auto hunt: WS stage failed twice — DOM fallback ` +
+      `[Leviticus Extension] auto hunt: WS stage failed twice — DOM fallback ` +
         `(wave="${waveTitle(doc)}")`
     );
   }
@@ -274,14 +274,14 @@ async function enterHuntNativeOrDom(
   if (ok) {
     // DOM click may still take a moment to apply.
     if (await confirmHuntEnter(doc, huntName, HUNT_RETRY_CONFIRM_MS) || ok) {
-      console.info(`[BaiakIdle Helper] auto hunt: DOM enter ${huntId}`);
+      console.info(`[Leviticus Extension] auto hunt: DOM enter ${huntId}`);
       lastHuntId = huntId;
       return true;
     }
   }
 
   console.warn(
-    `[BaiakIdle Helper] auto hunt: failed for ${huntId} (wave="${waveTitle(doc)}")`
+    `[Leviticus Extension] auto hunt: failed for ${huntId} (wave="${waveTitle(doc)}")`
   );
   return false;
 }
@@ -291,7 +291,7 @@ async function enterHuntNativeOrDom(
  * (waits sell cooldown as needed) so open-glooth / supply potions can run.
  */
 async function afterTreinoDrainLoot(settings: Settings, doc: Document): Promise<void> {
-  console.info("[BaiakIdle Helper] Treino reached — draining Loot Pouch (transfer → sell)");
+  console.info("[Leviticus Extension] Treino reached — draining Loot Pouch (transfer → sell)");
   await drainLootPouch(settings, doc, "treino drain");
 }
 
@@ -337,7 +337,7 @@ export async function maybeStaminaHuntRoute(
     entering = true;
     try {
       console.info(
-        `[BaiakIdle Helper] stamina ${stamina}m ≥ huntLimit ${toHunt}m in Treino — entering hunt ${hunt.id}`
+        `[Leviticus Extension] stamina ${stamina}m ≥ huntLimit ${toHunt}m in Treino — entering hunt ${hunt.id}`
       );
       await enterHuntNativeOrDom(doc, hunt.id, hunt.name);
       return "hunt";
@@ -353,7 +353,7 @@ export async function maybeStaminaHuntRoute(
     staminaRouteBusy = true;
     try {
       console.info(
-        `[BaiakIdle Helper] stamina ${stamina}m ≤ treinoLimit ${toTreino}m ` +
+        `[Leviticus Extension] stamina ${stamina}m ≤ treinoLimit ${toTreino}m ` +
           `wave="${waveTitle(doc)}" city=${city} gameplay=${gameplayConnected()} — going to Treino online`
       );
 
@@ -365,23 +365,23 @@ export async function maybeStaminaHuntRoute(
         // Mirror client Bae(): when leaving city canvas, clear away before mode.
         if (city) {
           const presence = sendRawPacket(cityPresencePacket(false));
-          console.info(`[BaiakIdle Helper] cityPresence away=false sent=${presence}`);
+          console.info(`[Leviticus Extension] cityPresence away=false sent=${presence}`);
           await sleep(120);
         }
         const sent = sendRawPacket(modePacket("exercise"));
-        console.info(`[BaiakIdle Helper] mode:exercise sent=${sent}`);
+        console.info(`[Leviticus Extension] mode:exercise sent=${sent}`);
         if (sent && (await confirmTreino(doc))) {
-          console.info("[BaiakIdle Helper] Treino online confirmed via WS");
+          console.info("[Leviticus Extension] Treino online confirmed via WS");
           reachedTreino = true;
         }
       } else {
-        console.info("[BaiakIdle Helper] no gameplay WS — DOM teleport for Treino");
+      console.info("[Leviticus Extension] no gameplay WS — DOM teleport for Treino");
       }
 
       if (!reachedTreino) {
         const okDom = await goToTreinoViaDom(doc);
         if (okDom && (await confirmTreino(doc))) {
-          console.info("[BaiakIdle Helper] Treino online confirmed via DOM");
+          console.info("[Leviticus Extension] Treino online confirmed via DOM");
           reachedTreino = true;
         }
       }
@@ -390,16 +390,16 @@ export async function maybeStaminaHuntRoute(
       if (!reachedTreino && gameplayConnected()) {
         if (city) sendRawPacket(cityPresencePacket(false));
         const sent = sendRawPacket(modePacket("exercise"));
-        console.info(`[BaiakIdle Helper] mode:exercise retry sent=${sent}`);
+        console.info(`[Leviticus Extension] mode:exercise retry sent=${sent}`);
         if (sent && (await confirmTreino(doc))) {
-          console.info("[BaiakIdle Helper] Treino online confirmed via WS retry");
+          console.info("[Leviticus Extension] Treino online confirmed via WS retry");
           reachedTreino = true;
         }
       }
 
       if (!reachedTreino) {
         console.warn(
-          `[BaiakIdle Helper] Treino online NOT confirmed (wave="${waveTitle(doc)}" ` +
+          `[Leviticus Extension] Treino online NOT confirmed (wave="${waveTitle(doc)}" ` +
             `city=${city} gameplay=${gameplayConnected()}) — will retry`
         );
         return false;
@@ -420,7 +420,7 @@ function logSkipThrottled(msg: string): void {
   const now = Date.now();
   if (now - lastSkipLogAt < 15_000) return;
   lastSkipLogAt = now;
-  console.info(`[BaiakIdle Helper] stamina-route skip: ${msg}`);
+  console.info(`[Leviticus Extension] stamina-route skip: ${msg}`);
 }
 
 /**

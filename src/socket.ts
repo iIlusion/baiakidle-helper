@@ -22,7 +22,7 @@ let reduceVfx = false;
 
 export function setReduceVfx(enabled: boolean): void {
   reduceVfx = enabled;
-  console.info(`[BaiakIdle Helper] reduceVfx=${enabled} (fx packets ${enabled ? "blocked from game" : "pass through"})`);
+  console.info(`[Leviticus Extension] reduceVfx=${enabled} (fx packets ${enabled ? "blocked from game" : "pass through"})`);
 }
 
 export function getReduceVfx(): boolean {
@@ -79,7 +79,7 @@ function receive(socket: WebSocket, data: SocketData): void {
 
 /**
  * Intercept game message listeners so we can drop visual flood before Pixi.
- * Helper receive uses the native addEventListener (full stream for rates/probes).
+ * The extension receive path uses the native addEventListener (full stream for rates/probes).
  */
 function installGameMessageFilter(socket: WebSocket, helperNeedsListener: boolean): void {
   if (filteredSockets.has(socket)) return;

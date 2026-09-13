@@ -97,7 +97,7 @@ export function isReconnectSessionPaused(): boolean {
 
 export function setReconnectSessionPaused(paused: boolean): void {
   ssSet(SS_PAUSE, paused);
-  console.info(`[BaiakIdle Helper] reconnect session pause=${paused}`);
+  console.info(`[Leviticus Extension] reconnect session pause=${paused}`);
   updateMiniBar();
 }
 
@@ -231,13 +231,13 @@ function goToJogar(fromMaint = false): void {
   if (fromMaint) setMaintWatch(true);
   const url = `${unsafeWindow.location.origin}/jogar/`;
   console.info(
-    `[BaiakIdle Helper] reconnect → ${url}${fromMaint ? " (maint watch)" : ""}`
+    `[Leviticus Extension] reconnect → ${url}${fromMaint ? " (maint watch)" : ""}`
   );
   unsafeWindow.location.assign(url);
 }
 
 function reloadPage(): void {
-  console.info("[BaiakIdle Helper] reconnect → reload");
+  console.info("[Leviticus Extension] reconnect → reload");
   unsafeWindow.location.reload();
 }
 
@@ -262,7 +262,7 @@ function minIntervalFor(reason: ReconnectReason, baseMs: number): number {
 function act(reason: ReconnectReason, doc: Document): void {
   lastReason = reason;
   lastActionAt = Date.now();
-  console.info(`[BaiakIdle Helper] reconnect action: ${reason}`);
+  console.info(`[Leviticus Extension] reconnect action: ${reason}`);
   updateMiniBar();
 
   if (reason === "homepage") {
@@ -287,7 +287,7 @@ function act(reason: ReconnectReason, doc: Document): void {
     const btn = findReconnectButton(doc);
     if (btn) {
       console.info(
-        `[BaiakIdle Helper] reconnect: click #conn-retry (${reason})`
+        `[Leviticus Extension] reconnect: click #conn-retry (${reason})`
       );
       btn.click();
       // Multi-account "Tentar de novo" only reloads — if still blocked, next tick retries.
@@ -336,7 +336,7 @@ function clearMaintWatchIfEnded(doc: Document): void {
   if (maintenanceOverlayOpen(doc)) return;
   setMaintWatch(false);
   console.info(
-    "[BaiakIdle Helper] reconnect: JOGO EM MANUTENÇÃO sumiu — maint watch off"
+    "[Leviticus Extension] reconnect: JOGO EM MANUTENÇÃO sumiu — maint watch off"
   );
 }
 
@@ -355,7 +355,7 @@ export function tickAutoReconnect(settings?: Settings): void {
     if (now - lastSkipLogAt > 12_000) {
       lastSkipLogAt = now;
       console.info(
-        `[BaiakIdle Helper] reconnect idle: autoReconnect=OFF path=${page.location.pathname}` +
+        `[Leviticus Extension] reconnect idle: autoReconnect=OFF path=${page.location.pathname}` +
           (reason ? ` (would act: ${reason})` : "")
       );
     }
@@ -368,7 +368,7 @@ export function tickAutoReconnect(settings?: Settings): void {
     if (now - lastSkipLogAt > 12_000) {
       lastSkipLogAt = now;
       console.info(
-        `[BaiakIdle Helper] reconnect session PAUSED path=${page.location.pathname}` +
+        `[Leviticus Extension] reconnect session PAUSED path=${page.location.pathname}` +
           (reason ? ` (held: ${reason})` : "")
       );
     }
@@ -391,7 +391,7 @@ export function tickAutoReconnect(settings?: Settings): void {
     if (Date.now() - lastSkipLogAt > 12_000) {
       lastSkipLogAt = Date.now();
       console.info(
-        `[BaiakIdle Helper] reconnect skip: reason=${reason} but sub-option OFF`
+        `[Leviticus Extension] reconnect skip: reason=${reason} but sub-option OFF`
       );
     }
     updateMiniBar();
@@ -407,7 +407,7 @@ export function tickAutoReconnect(settings?: Settings): void {
       lastMaintLogAt = Date.now();
       const left = Math.ceil((wait - (Date.now() - lastActionAt)) / 1_000);
       console.info(
-        `[BaiakIdle Helper] reconnect: ${reason} — next in ~${left}s path=${page.location.pathname}`
+        `[Leviticus Extension] reconnect: ${reason} — next in ~${left}s path=${page.location.pathname}`
       );
     }
     updateMiniBar();
@@ -454,7 +454,7 @@ function ensureMiniBar(): HTMLElement | null {
       #${MINI_BAR_ID} button.pause-on{border-color:#e8a54e;color:#ffd9a0}
       #${MINI_BAR_ID} button:hover{border-color:#e8c34e}
     </style>
-    <b>Helper · Reconnect</b>
+    <b>Leviticus Extension · Reconnect</b>
     <div class="st" data-st></div>
     <div class="row">
       <button type="button" data-act="toggle">Ligar</button>
@@ -472,7 +472,7 @@ function ensureMiniBar(): HTMLElement | null {
       reconnectMaintenance: true,
       reconnectMultiAccount: true
     });
-    console.info(`[BaiakIdle Helper] reconnect mini: autoReconnect=${next}`);
+  console.info(`[Leviticus Extension] reconnect mini: autoReconnect=${next}`);
     updateMiniBar();
     if (next) tickAutoReconnect();
   });
@@ -536,7 +536,7 @@ export function startReconnectWatcher(getSettings: () => Settings): void {
     try {
       tickAutoReconnect();
     } catch (err) {
-      console.warn("[BaiakIdle Helper] reconnect tick error", err);
+      console.warn("[Leviticus Extension] reconnect tick error", err);
     }
   }, 1_500);
 
@@ -560,7 +560,7 @@ export function startReconnectWatcher(getSettings: () => Settings): void {
   page.setTimeout(mountMini, 500);
 
   console.info(
-    `[BaiakIdle Helper] reconnect watcher ready path=${page.location.pathname} ` +
+    `[Leviticus Extension] reconnect watcher ready path=${page.location.pathname} ` +
       `autoReconnect=${readLiveSettings().autoReconnect} ` +
       `sessionPause=${isReconnectSessionPaused()} maintWatch=${isMaintWatch()}`
   );

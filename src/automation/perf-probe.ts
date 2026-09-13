@@ -50,7 +50,7 @@ export function startPerfProbe(): void {
     spikes.push({ t: Date.now(), kind, ms, detail });
     if (spikes.length > MAX_EVENTS) spikes.splice(0, spikes.length - MAX_EVENTS);
     console.warn(
-      `[BaiakIdle Helper][perf] ${kind} ${Math.round(ms)}ms ${detail}`
+      `[Leviticus Extension][perf] ${kind} ${Math.round(ms)}ms ${detail}`
     );
   };
 
@@ -140,6 +140,6 @@ export function startPerfProbe(): void {
   };
   (page as typeof page & { __baiakPerf?: PerfApi }).__baiakPerf = api;
   console.info(
-    "[BaiakIdle Helper][perf] probe on. DevTools: window.__baiakPerf.summary()"
+    "[Leviticus Extension][perf] probe on. DevTools: window.__baiakPerf.summary()"
   );
 }

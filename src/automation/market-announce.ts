@@ -62,7 +62,7 @@ function scheduleNextShare(fromMs: number, intervalMs: number): void {
   const jitter = randomJitterMs();
   nextShareNotBefore = fromMs + base + jitter;
   console.info(
-    `[BaiakIdle Helper] market-announce: next share in ${Math.round((base + jitter) / 1000)}s ` +
+    `[Leviticus Extension] market-announce: next share in ${Math.round((base + jitter) / 1000)}s ` +
       `(base ${Math.round(base / 1000)}s + jitter ${Math.round(jitter / 1000)}s)`
   );
 }
@@ -138,12 +138,12 @@ function applyListings(list: Listing[], source: string): void {
     if (Date.now() - lastEmptyLogAt > 45_000) {
       lastEmptyLogAt = Date.now();
       console.info(
-        `[BaiakIdle Helper] market-announce: 0 active listings (${source})`
+    `[Leviticus Extension] market-announce: 0 active listings (${source})`
       );
     }
   } else {
     console.info(
-      `[BaiakIdle Helper] market-announce: ${list.length} listing(s) via ${source} ` +
+    `[Leviticus Extension] market-announce: ${list.length} listing(s) via ${source} ` +
         `[${list.map(l => l.id).join(", ")}]`
     );
   }
@@ -347,7 +347,7 @@ async function refreshListings(force = false): Promise<void> {
     const list = await harvestListingsInvisible();
     applyListings(list, "auto-mine");
   } catch (err) {
-    console.warn("[BaiakIdle Helper] market-announce: harvest failed", err);
+    console.warn("[Leviticus Extension] market-announce: harvest failed", err);
     lastHarvestAt = Date.now();
   } finally {
     harvestInFlight = false;
@@ -419,7 +419,7 @@ function onChatRelatedPacket(bytes: Uint8Array): void {
   if (type === "aucshareok") {
     lastShareById.set(id, now);
     console.info(
-      `[BaiakIdle Helper] market-announce: OK listingId=${id} — deve aparecer no canal Market`
+      `[Leviticus Extension] market-announce: OK listingId=${id} — deve aparecer no canal Market`
     );
     pending = null;
     return;
@@ -427,7 +427,7 @@ function onChatRelatedPacket(bytes: Uint8Array): void {
 
   const reason = errReason(bytes);
   console.warn(
-    `[BaiakIdle Helper] market-announce: ERR listingId=${id} reason=${reason}`
+    `[Leviticus Extension] market-announce: ERR listingId=${id} reason=${reason}`
   );
 
   if (reason === "notyours") {
@@ -457,7 +457,7 @@ async function tick(settings: Settings): Promise<void> {
 
   if (pending && Date.now() - pending.sentAt > PENDING_TIMEOUT_MS) {
     console.warn(
-      `[BaiakIdle Helper] market-announce: timeout waiting ok/err for ${pending.id}`
+      `[Leviticus Extension] market-announce: timeout waiting ok/err for ${pending.id}`
     );
     pending = null;
   }
@@ -473,7 +473,7 @@ async function tick(settings: Settings): Promise<void> {
     if (now - lastChatFailLogAt > 30_000) {
       lastChatFailLogAt = now;
       console.warn(
-        "[BaiakIdle Helper] market-announce: chat socket offline — waiting"
+        "[Leviticus Extension] market-announce: chat socket offline — waiting"
       );
     }
     return;
@@ -482,7 +482,7 @@ async function tick(settings: Settings): Promise<void> {
   const packet = aucSharePacket(due.id);
   const sent = sendChatPacket(packet);
   console.info(
-    `[BaiakIdle Helper] market-announce: aucshare listingId=${due.id} sent=${sent} chat=${chatConnected()}`
+    `[Leviticus Extension] market-announce: aucshare listingId=${due.id} sent=${sent} chat=${chatConnected()}`
   );
   if (!sent) return;
 
@@ -516,12 +516,12 @@ export function startMarketAnnounce(getSettings: () => Settings): void {
     try {
       void tick(getSettings());
     } catch (err) {
-      console.warn("[BaiakIdle Helper] market-announce tick error", err);
+      console.warn("[Leviticus Extension] market-announce tick error", err);
     }
   }, TICK_MS);
 
   console.info(
-    "[BaiakIdle Helper] market-announce ready (invisible mine harvest, no helper token)"
+    "[Leviticus Extension] market-announce ready (invisible mine harvest, no helper token)"
   );
 }
 

@@ -6,10 +6,10 @@ const common = `// @match https://baiakidle.com/*
 // @match https://www.baiakidle.com/*
 // @run-at document-start`;
 const banner = `// ==UserScript==
-// @name BaiakIdle Helper
+// @name Leviticus Extension
 // @namespace baiakidle-helper
 // @version ${version}
-// @description Auto Sell, Hunt, Treino and Reconnect helper for BaiakIdle.
+// @description Leviticus Extension automation for BaiakIdle.
 // @homepageURL https://github.com/iIlusion/baiakidle-helper
 // @supportURL https://discord.gg/Hy7HqcAgQG
 // @updateURL https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js
@@ -19,7 +19,7 @@ ${common}
 // ==/UserScript==
 `;
 const devLoader = `// ==UserScript==
-// @name BaiakIdle Helper DEV
+// @name Leviticus Extension DEV
 // @namespace baiakidle-helper
 // @version ${version}-dev
 ${common}
@@ -73,12 +73,12 @@ ${common}
     url: "http://127.0.0.1:8946/baiakidle-helper.user.js?t=" + Date.now(),
     onload: response => {
       if (response.status !== 200) {
-        console.error("[BaiakIdle Helper DEV] bundle HTTP", response.status);
+        console.error("[Leviticus Extension DEV] bundle HTTP", response.status);
         return;
       }
       eval(response.responseText + "\\n//# sourceURL=baiakidle-helper.dev.js");
     },
-    onerror: error => console.error("[BaiakIdle Helper DEV] run npm run dev", error)
+    onerror: error => console.error("[Leviticus Extension DEV] run npm run dev", error)
   });
 })();
 `;

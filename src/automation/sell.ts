@@ -62,7 +62,7 @@ export async function sellAllRespectingTransfer(
     const sent = sendRawPacket(SELL_ALL_BASE64);
     if (sent) {
       console.info(
-        `[BaiakIdle Helper] auto sell: sell all ` +
+        `[Leviticus Extension] auto sell: sell all ` +
           `(${state.current}/${state.capacity} ≥ threshold, transfer-first)`
       );
     }
@@ -90,7 +90,7 @@ export async function drainLootPouch(
     for (;;) {
       const state = readInventory(doc);
       if (!state || state.current === 0) {
-        console.info(`[BaiakIdle Helper] ${logPrefix}: Loot Pouch empty`);
+        console.info(`[Leviticus Extension] ${logPrefix}: Loot Pouch empty`);
         return true;
       }
 
@@ -98,7 +98,7 @@ export async function drainLootPouch(
       if (now - lastLogAt >= 15_000) {
         lastLogAt = now;
         console.info(
-          `[BaiakIdle Helper] ${logPrefix}: ${state.current}/${state.capacity}` +
+          `[Leviticus Extension] ${logPrefix}: ${state.current}/${state.capacity}` +
             `${state.sellCooldown ? " (sell cooldown)" : state.canSell ? "" : " (sell blocked)"}` +
             " — waiting until empty"
         );
@@ -113,7 +113,7 @@ export async function drainLootPouch(
       if (state.canSell && now - lastSellAt >= SELL_RETRY_GAP_MS) {
         if (sendRawPacket(SELL_ALL_BASE64)) {
           lastSellAt = now;
-          console.info(`[BaiakIdle Helper] ${logPrefix}: sell all sent`);
+          console.info(`[Leviticus Extension] ${logPrefix}: sell all sent`);
           await sleep(SETTLE_MS);
           continue;
         }

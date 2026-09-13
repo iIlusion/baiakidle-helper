@@ -19,9 +19,11 @@ import {
 import { startMarketAnnounce } from "./automation/market-announce";
 import { startPerfProbe } from "./automation/perf-probe";
 import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
-import { startScheduler } from "./automation/scheduler";
+import { readAutoBossView, startScheduler } from "./automation/scheduler";
 import { startTeleportProbe } from "./automation/probe";
 import { HUNTS, huntById } from "./data/hunts";
+import { AutoBossPanel } from "./components/AutoBossPanel";
+import { LeviticusMark } from "./components/LeviticusMark";
 import styles from "./control.css?inline";
 
 declare const unsafeWindow: Window & typeof globalThis;
@@ -85,6 +87,7 @@ function ControlMenu(): React.JSX.Element {
   const [view, setView] = React.useState<View>("automation");
   const [value, setValue] = React.useState(settings);
   const [gameConnected, setGameConnected] = React.useState(false);
+  const [autoBossStatus, setAutoBossStatus] = React.useState(() => readAutoBossView(value));
   const [bridgeConnected, setBridgeConnected] = React.useState(false);
   const [position, setPosition] = React.useState<Position>({ left: 8, top: 78 });
   const buttonRef = React.useRef<HTMLButtonElement>(null);
@@ -112,6 +115,7 @@ function ControlMenu(): React.JSX.Element {
   React.useEffect(() => {
     const refresh = () => {
       setGameConnected(gameplayConnected());
+      setAutoBossStatus(readAutoBossView(settings));
       if (__BAIAKIDLE_DEV__) setBridgeConnected(Boolean(mcpBridge()));
     };
     refresh();
@@ -219,26 +223,29 @@ function ControlMenu(): React.JSX.Element {
         id="tab-baiak-control"
         className={`tab baiak-control-tab${open ? " on" : ""}`}
         type="button"
-        aria-label="Abrir BaiakIdle Helper"
+        aria-label="Abrir Leviticus Extension"
         aria-controls="baiakidle-control-panel"
         aria-expanded={open}
         onClick={() => setOpen(current => !current)}
       >
         <span className="baiak-control-icon" aria-hidden="true"><BotIcon /></span>
-        <span>Helper</span>
+        <span>Leviticus</span>
       </button>
       {open && createPortal(
         <div
           ref={panelRef}
           id="baiakidle-control-panel"
           role="dialog"
-          aria-label="BaiakIdle Helper"
+          aria-label="Leviticus Extension"
           style={position}
         >
           <header className="baiak-control-head">
-            <div>
-              <h2>BaiakIdle Helper</h2>
-              <p>Ferramentas para Glooth Bag &amp; Loot Pouch</p>
+            <div className="lev-brand-lockup">
+              <span className="lev-brand-mark"><LeviticusMark /></span>
+              <div>
+                <h2>Leviticus Extension</h2>
+                <p>Automação enxuta para sua sessão BaiakIdle</p>
+              </div>
             </div>
             <span className={`baiak-bridge-state${gameConnected ? " connected" : ""}`}>
               <RadioIcon />{gameConnected ? "Jogo conectado" : "Aguardando hunt"}
@@ -246,7 +253,7 @@ function ControlMenu(): React.JSX.Element {
           </header>
 
           {__BAIAKIDLE_DEV__ && (
-            <nav className="baiak-control-nav" aria-label="Seções do Helper">
+            <nav className="baiak-control-nav" aria-label="Seções do Leviticus Extension">
               <button type="button" className={view === "automation" ? "active" : ""} onClick={() => setView("automation")}>
                 Automação
               </button>
@@ -258,6 +265,14 @@ function ControlMenu(): React.JSX.Element {
 
           {!__BAIAKIDLE_DEV__ || view === "automation" ? (
             <div className="baiak-control-body">
+              <AutoBossPanel
+                settings={value}
+                status={autoBossStatus}
+                onChange={next => {
+                  setValue(next);
+                  persist(next);
+                }}
+              />
               <div className="baiak-setting-group">
                 <SettingRow
                   id="baiak-auto-sell"
@@ -535,7 +550,7 @@ function ControlMenu(): React.JSX.Element {
                 <SettingRow
                   id="baiak-auto-market-announce"
                   title="Auto Market Announce"
-                  description="aucshare no Market. Coleta IDs sozinha (Market invisível → Meus anúncios → fecha). Sem token do helper."
+                  description="aucshare no Market. Coleta IDs sozinha (Market invisível → Meus anúncios → fecha). Sem token da extensão."
                   checked={value.autoMarketAnnounce}
                   onCheckedChange={checked => change("autoMarketAnnounce", checked)}
                 />
@@ -747,7 +762,7 @@ function mount(): boolean {
   host.id = "baiakidle-control-root";
   tabs.append(host);
   createRoot(host).render(<ControlMenu />);
-  console.info("[BaiakIdle Helper] loaded");
+  console.info("[Leviticus Extension] loaded");
   return true;
 }
 
@@ -769,7 +784,8 @@ startReconnectWatcher(() => settings);
 if (isJogarPath()) {
   startPerfProbe();
   startScheduler({
-    getSettings: () => settings
+    getSettings: () => settings,
+    persist
   });
   startMarketAnnounce(() => settings);
   startAnalyserEnhancements();
@@ -782,7 +798,7 @@ if (isJogarPath()) {
   }
 } else {
   console.info(
-    `[BaiakIdle Helper] reconnect-only mode (path=${page.location.pathname}) — ` +
+    `[Leviticus Extension] reconnect-only mode (path=${page.location.pathname}) — ` +
       `use the bottom-right mini bar or enable Auto Reconnect on /jogar`
   );
 }
