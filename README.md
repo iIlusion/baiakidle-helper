@@ -1,74 +1,14 @@
 <div align="center">
 
-<a href="https://www.leviticusbot.com/?camp=p2CBR4cb">
-  <img src="assets/banner-cloud.svg" alt="Leviticus Cloud — Seu PC dorme. Suas contas não." width="100%">
-</a>
-
-<br>
-
-<a href="https://www.leviticusbot.com/?camp=p2CBR4cb"><img src="https://img.shields.io/badge/TESTE%20GR%C3%81TIS%2024H-ir%20para%20o%20site-3ee6b6?style=for-the-badge&labelColor=0e2a24&logoColor=3ee6b6" alt="Teste grátis 24h"></a>
-<a href="https://discord.leviticusbot.com"><img src="https://img.shields.io/badge/DISCORD-entrar%20na%20comunidade-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Entrar no Discord"></a>
-
-</div>
-
-<br>
-
-# ☁️ Leviticus Cloud
-
-> **Liga hoje à noite. Acorda com o loot feito.**
-> O Leviticus Cloud roda suas contas de BaiakIdle na nuvem: caça, vende e junta o loot 24h por dia, **com o seu computador desligado**.
-
-<table>
-  <tr>
-    <td width="33%" valign="top">
-      <h4>🗂️ Multi-conta num desk só</h4>
-      Todas as suas contas na mesma tela, rodando juntas, cada uma com conexão dedicada.
-    </td>
-    <td width="33%" valign="top">
-      <h4>🔌 Desligue o computador</h4>
-      Roda na nuvem: seu PC dorme, suas contas não.
-    </td>
-    <td width="33%" valign="top">
-      <h4>📱 Controle pelo celular</h4>
-      Opere tudo pelo navegador do computador ou pelo celular, de onde você estiver.
-    </td>
-  </tr>
-</table>
-
-### 💳 Planos
-
-| Preço | Contas incluídas |
-| :--: | :-- |
-| **R$ 75,00**/mês | até **10** contas |
-| **R$ 99,00**/mês | até **20** contas |
-| **R$ 5,00** cada | cada conta extra · assine quantas quiser |
-
-🎁 **Teste grátis por 24 horas em 1 conta**.
-
-<div align="center">
-
-<a href="https://www.leviticusbot.com/?camp=p2CBR4cb"><img src="https://img.shields.io/badge/CONHECER%20O%20LEVITICUS%20CLOUD-leviticusbot.com-3ee6b6?style=for-the-badge&labelColor=0e2a24" alt="Conhecer o Leviticus Cloud"></a>
-
-</div>
-
-<br>
-
----
-
-<br>
-
-<div align="center">
-
 <img src="assets/banner-extension.svg" alt="Leviticus Extension" width="100%">
 
 <br>
 
 [![Release](https://img.shields.io/github/v/release/iIlusion/baiakidle-helper?style=for-the-badge&logo=github&label=release&color=3ee6b6&labelColor=0e2a24)](https://github.com/iIlusion/baiakidle-helper/releases/latest)
-[![Site](https://img.shields.io/badge/site-leviticusbot.com-3ee6b6?style=for-the-badge&labelColor=0e2a24)](https://www.leviticusbot.com/?camp=p2CBR4cb)
-[![Discord](https://img.shields.io/badge/Discord-entrar-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.leviticusbot.com)
 [![Licença](https://img.shields.io/github/license/iIlusion/baiakidle-helper?style=for-the-badge&label=licen%C3%A7a&color=2e313c&labelColor=17181f)](LICENSE)
+[![Discord](https://img.shields.io/badge/Discord-entrar-5865F2?style=for-the-badge&logo=discord&logoColor=white)](https://discord.leviticusbot.com)
 
-**[⬇️ Instalar a versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js)** · **[☁️ Leviticus Cloud](https://www.leviticusbot.com/?camp=p2CBR4cb)** · **[💬 Discord](https://discord.leviticusbot.com)**
+**[⬇️ Instalar a versão mais recente](https://github.com/iIlusion/baiakidle-helper/releases/latest/download/baiakidle-helper.user.js)**
 
 </div>
 
@@ -76,8 +16,22 @@
 
 O **Leviticus Extension** é o userscript do ecossistema Leviticus: ele adiciona automações próprias direto na sessão do [BaiakIdle](https://baiakidle.com/jogar/), dentro do navegador. Antes se chamava *Baiakidle Helper*.
 
-> [!TIP]
-> **Extensão ou Cloud?** A extensão automatiza a aba do jogo que você já tem aberta, então precisa do navegador ligado. Para deixar várias contas rodando **sem o PC ligado** e controlar pelo celular, use o [Leviticus Cloud](https://www.leviticusbot.com/?camp=p2CBR4cb).
+<div align="center">
+
+<br>
+
+<a href="https://www.leviticusbot.com/?camp=p2CBR4cb">
+  <img src="assets/banner-cloud.svg" alt="Leviticus Cloud — Seu PC dorme. Suas contas não. Multi-conta, controle pelo celular, R$ 75/mês até 10 contas, R$ 99/mês até 20 contas, R$ 5 por conta extra, teste grátis de 24h." width="100%">
+</a>
+
+<br>
+
+<a href="https://www.leviticusbot.com/?camp=p2CBR4cb"><img src="https://img.shields.io/badge/ACESSAR%20O%20SITE-leviticusbot.com-3ee6b6?style=for-the-badge&labelColor=0e2a24" alt="Acessar o site"></a>
+<a href="https://discord.leviticusbot.com"><img src="https://img.shields.io/badge/ENTRAR%20NO%20DISCORD-comunidade-5865F2?style=for-the-badge&logo=discord&logoColor=white" alt="Entrar no Discord"></a>
+
+</div>
+
+<br>
 
 ## 📑 Índice
 
