@@ -2,7 +2,6 @@ import * as React from "react";
 import { createPortal } from "react-dom";
 import { createRoot } from "react-dom/client";
 import { Switch } from "./components/ui/switch";
-import { setReduceVfx } from "./socket";
 import { startAnalyserEnhancements } from "./analyzers";
 import {
   clampAutoSellThresholdPct,
@@ -17,12 +16,13 @@ import {
   type TransferTiers
 } from "./automation/settings";
 import { startMarketAnnounce } from "./automation/market-announce";
-import { startPerfProbe } from "./automation/perf-probe";
 import { isJogarPath, startReconnectWatcher } from "./automation/reconnect";
 import { readAutoBossView, startScheduler } from "./automation/scheduler";
 import { startBossMenuObserver, type BossMenuHosts } from "./automation/boss-menu";
+import { startAutoCodex } from "./automation/auto-codex-runtime";
+import { startCodexMenuObserver } from "./automation/codex-menu";
 import { startTeleportProbe } from "./automation/probe";
-import { consumeAnnouncement } from "./automation/announcement";
+import { hideAnnouncementForever, shouldShowAnnouncement } from "./automation/announcement";
 import { HUNTS, huntById } from "./data/hunts";
 import { AutoBossPanel } from "./components/AutoBossPanel";
 import { AnnouncementModal, LEVITICUS_SITE_URL } from "./components/AnnouncementModal";
@@ -56,7 +56,6 @@ function mcpBridge(): McpBridgeApi | undefined {
 function persist(next: Settings): void {
   settings = next;
   saveSettings(page.localStorage, next);
-  setReduceVfx(next.reduceVfx);
   page.dispatchEvent(new CustomEvent(SETTINGS_EVENT, { detail: next }));
 }
 
@@ -73,7 +72,7 @@ type Position = { left: number; top: number };
 
 function ControlMenu(): React.JSX.Element {
   const [open, setOpen] = React.useState(false);
-  const [announcementOpen, setAnnouncementOpen] = React.useState(() => consumeAnnouncement(page.localStorage, __LEVITICUS_VERSION__));
+  const [announcementOpen, setAnnouncementOpen] = React.useState(() => shouldShowAnnouncement(page.localStorage));
   const [view, setView] = React.useState<View>("automation");
   const [value, setValue] = React.useState(settings);
   const [autoBossStatus, setAutoBossStatus] = React.useState(() => readAutoBossView(value));
@@ -84,6 +83,10 @@ function ControlMenu(): React.JSX.Element {
   const panelRef = React.useRef<HTMLDivElement>(null);
 
   const closeAnnouncement = React.useCallback(() => setAnnouncementOpen(false), []);
+  const hideAnnouncement = React.useCallback(() => {
+    hideAnnouncementForever(page.localStorage);
+    setAnnouncementOpen(false);
+  }, []);
 
   const updatePosition = React.useCallback(() => {
     const rect = buttonRef.current?.getBoundingClientRect();
@@ -224,7 +227,7 @@ function ControlMenu(): React.JSX.Element {
   return (
     <>
       {announcementOpen && createPortal(
-        <AnnouncementModal onClose={closeAnnouncement} />,
+        <AnnouncementModal onClose={closeAnnouncement} onHide={hideAnnouncement} />,
         page.document.body
       )}
       <button
@@ -548,16 +551,6 @@ function ControlMenu(): React.JSX.Element {
 
               <div className="baiak-setting-group">
                 <SettingRow
-                  id="baiak-reduce-vfx"
-                  title="Modo leve (sem VFX)"
-                  description="Bloqueia pacotes fx antes do Pixi (magias/projéteis/efeitos). Menos freeze em combate."
-                  checked={value.reduceVfx}
-                  onCheckedChange={checked => change("reduceVfx", checked)}
-                />
-              </div>
-
-              <div className="baiak-setting-group">
-                <SettingRow
                   id="baiak-auto-market-announce"
                   title="Auto Market Announce"
                   description="aucshare no Market. Coleta IDs sozinha (Market invisível → Meus anúncios → fecha). Sem token da extensão."
@@ -788,23 +781,21 @@ page.addEventListener("baiakidle-helper-settings", event => {
   const detail = (event as CustomEvent<Settings>).detail;
   if (detail) {
     settings = detail;
-    setReduceVfx(detail.reduceVfx);
   }
 });
-
-setReduceVfx(settings.reduceVfx);
 
 // Reconnect runs on all matched pages (homepage, maintenance, /jogar).
 startReconnectWatcher(() => settings);
 
 // Full automation + UI only on /jogar (HUD exists there).
 if (isJogarPath()) {
-  startPerfProbe();
   startScheduler({
     getSettings: () => settings,
     persist
   });
   startMarketAnnounce(() => settings);
+  startAutoCodex(() => settings);
+  startCodexMenuObserver(page.document, () => settings, persist);
   startAnalyserEnhancements();
   // Full-document MutationObserver probe is dev-only (very expensive in combat).
   if (__BAIAKIDLE_DEV__) startTeleportProbe();

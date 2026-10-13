@@ -1,4 +1,5 @@
 import { bossById, parseAutoBossIds } from "../data/bosses.ts";
+import { parseAutoCodexIds } from "./auto-codex.ts";
 
 export type TransferTiers = {
   rare: boolean;
@@ -43,11 +44,6 @@ export type Settings = {
   reconnectMaintenance: boolean;
   reconnectDisconnected: boolean;
   reconnectMultiAccount: boolean;
-  /**
-   * Drop inbound `fx` packets before the game/Pixi sees them
-   * (particles, projectiles, floating combat art). Combat still resolves server-side.
-   */
-  reduceVfx: boolean;
   /** Share each active auction on Market chat (`aucshare`) on a timer. */
   autoMarketAnnounce: boolean;
   /**
@@ -70,6 +66,11 @@ export type Settings = {
   autoBossLastId: string;
   autoBossLastResult: "" | "win" | "lose";
   autoBossResults: Record<string, "win" | "lose">;
+  /** Auto Codex: entrega sozinho nas entradas de `autoCodexIds`, na ordem (prioridade). */
+  autoCodex: boolean;
+  autoCodexIds: string[];
+  /** Nomes para exibir a fila sem depender da lista nativa estar na tela. */
+  autoCodexNames: Record<string, string>;
 };
 
 export const STORAGE_KEY = "baiakidle-helper-v1";
@@ -102,7 +103,6 @@ export const defaults: Settings = {
   reconnectDisconnected: true,
   /** Retry "LIMITE DE CONTAS SIMULTÂNEAS" / takeover (click Tentar de novo). */
   reconnectMultiAccount: true,
-  reduceVfx: false,
   autoMarketAnnounce: false,
   /** Native server gap is ~4 min between any aucshare. */
   autoMarketAnnounceIntervalMs: 4 * 60 * 1_000,
@@ -118,7 +118,10 @@ export const defaults: Settings = {
   autoBossLeftAt: 0,
   autoBossLastId: "",
   autoBossLastResult: "",
-  autoBossResults: {}
+  autoBossResults: {},
+  autoCodex: false,
+  autoCodexIds: [],
+  autoCodexNames: {}
 };
 
 function asBool(value: unknown, fallback: boolean): boolean {
@@ -154,6 +157,11 @@ function asAutoBossResults(value: unknown): Record<string, "win" | "lose"> {
     if (boss) result[boss.id] = status;
   }
   return result;
+}
+
+function asNames(value: unknown): Record<string, string> {
+  if (!value || typeof value !== "object") return {};
+  return Object.fromEntries(Object.entries(value).filter(([, name]) => typeof name === "string").slice(0, 60));
 }
 
 export function loadSettings(
@@ -201,7 +209,6 @@ export function loadSettings(
         raw.reconnectMultiAccount,
         defaults.reconnectMultiAccount
       ),
-      reduceVfx: asBool(raw.reduceVfx, defaults.reduceVfx),
       autoMarketAnnounce: asBool(raw.autoMarketAnnounce, defaults.autoMarketAnnounce),
       autoMarketAnnounceIntervalMs: clampMarketAnnounceIntervalMs(
         raw.autoMarketAnnounceIntervalMs
@@ -221,7 +228,10 @@ export function loadSettings(
       autoBossLeftAt: asNonNegativeNumber(raw.autoBossLeftAt, defaults.autoBossLeftAt),
       autoBossLastId: typeof raw.autoBossLastId === "string" ? raw.autoBossLastId : defaults.autoBossLastId,
       autoBossLastResult: asAutoBossResult(raw.autoBossLastResult),
-      autoBossResults: asAutoBossResults(raw.autoBossResults)
+      autoBossResults: asAutoBossResults(raw.autoBossResults),
+      autoCodex: asBool(raw.autoCodex, defaults.autoCodex),
+      autoCodexIds: parseAutoCodexIds(raw.autoCodexIds),
+      autoCodexNames: asNames(raw.autoCodexNames)
     };
   } catch {
     return { ...defaults, transferTiers: { ...defaults.transferTiers } };

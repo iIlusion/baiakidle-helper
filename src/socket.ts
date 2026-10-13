@@ -1,5 +1,4 @@
 import { createSocketRole, observeSocket, type SocketRole } from "./socket-role";
-import { shouldDropVisualForGame } from "./ws-filter";
 
 declare const unsafeWindow: Window & typeof globalThis;
 
@@ -8,7 +7,6 @@ const monitored = /^wss?:\/\/(?:rt\d+\.)?baiakidle\.com(?:\/|$)/i;
 const sockets = new Map<string, WebSocket>();
 const roles = new Map<WebSocket, SocketRole>();
 const seen = new WeakSet<WebSocket>();
-const filteredSockets = new WeakSet<WebSocket>();
 export type GamePacketListener = (
   bytes: Uint8Array,
   receivedAt: number,
@@ -16,18 +14,6 @@ export type GamePacketListener = (
 ) => void;
 const packetListeners = new Set<GamePacketListener>();
 const outgoingListeners = new Set<(bytes: Uint8Array, url: string) => void>();
-
-/** When true, game/Pixi never sees `fx` room packets (particles, floating damage art). */
-let reduceVfx = false;
-
-export function setReduceVfx(enabled: boolean): void {
-  reduceVfx = enabled;
-  console.info(`[Leviticus Extension] reduceVfx=${enabled} (fx packets ${enabled ? "blocked from game" : "pass through"})`);
-}
-
-export function getReduceVfx(): boolean {
-  return reduceVfx;
-}
 
 type SocketData = string | Blob | ArrayBufferLike | ArrayBufferView;
 type EarlyRecord = {
@@ -77,87 +63,17 @@ function receive(socket: WebSocket, data: SocketData): void {
   void bytesAsync(data).then(value => dispatchPacket(socket, value, receivedAt));
 }
 
-/**
- * Intercept game message listeners so we can drop visual flood before Pixi.
- * The extension receive path uses the native addEventListener (full stream for rates/probes).
- */
-function installGameMessageFilter(socket: WebSocket, helperNeedsListener: boolean): void {
-  if (filteredSockets.has(socket)) return;
-  filteredSockets.add(socket);
-
-  const originalAdd = socket.addEventListener.bind(socket);
-  const originalRemove = socket.removeEventListener.bind(socket);
-  const wrapMap = new WeakMap<EventListenerOrEventListenerObject, EventListener>();
-
-  if (helperNeedsListener) {
-    originalAdd("message", event => {
-      receive(socket, (event as MessageEvent).data as SocketData);
-    });
-  }
-
-  socket.addEventListener = ((
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | AddEventListenerOptions
-  ) => {
-    if (type === "message" && typeof listener === "function") {
-      const wrapped: EventListener = event => {
-        if (reduceVfx) {
-          const data = (event as MessageEvent).data as SocketData;
-          const sync = bytesSync(data);
-          if (sync && shouldDropVisualForGame(sync)) return;
-        }
-        (listener as EventListener).call(socket, event);
-      };
-      wrapMap.set(listener, wrapped);
-      return originalAdd(type, wrapped, options);
-    }
-    return originalAdd(type, listener, options);
-  }) as typeof socket.addEventListener;
-
-  socket.removeEventListener = ((
-    type: string,
-    listener: EventListenerOrEventListenerObject,
-    options?: boolean | EventListenerOptions
-  ) => {
-    const wrapped = wrapMap.get(listener);
-    return originalRemove(type, wrapped ?? listener, options);
-  }) as typeof socket.removeEventListener;
-
-  let userOnMessage: ((this: WebSocket, ev: MessageEvent) => unknown) | null = null;
-  Object.defineProperty(socket, "onmessage", {
-    configurable: true,
-    enumerable: true,
-    get() {
-      return userOnMessage;
-    },
-    set(fn: ((this: WebSocket, ev: MessageEvent) => unknown) | null) {
-      userOnMessage = fn;
-      if (!fn) return;
-      originalAdd("message", event => {
-        if (reduceVfx) {
-          const data = (event as MessageEvent).data as SocketData;
-          const sync = bytesSync(data);
-          if (sync && shouldDropVisualForGame(sync)) return;
-        }
-        fn.call(socket, event as MessageEvent);
-      });
-    }
-  });
-
-  originalAdd("close", () => {
-    sockets.delete(String(socket.url));
-    roles.delete(socket);
-  });
-}
-
 function monitor(url: string, socket: WebSocket, early?: EarlyRecord): void {
   if (!monitored.test(url) || seen.has(socket)) return;
   seen.add(socket);
   sockets.set(url, socket);
   roles.set(socket, createSocketRole());
   // Early hook already feeds receive via dispatch — avoid double helper listener.
-  installGameMessageFilter(socket, !early);
+  if (!early) socket.addEventListener("message", event => receive(socket, (event as MessageEvent).data as SocketData));
+  socket.addEventListener("close", () => {
+    sockets.delete(String(socket.url));
+    roles.delete(socket);
+  });
 
   if (early) {
     early.dispatch = data => receive(socket, data);

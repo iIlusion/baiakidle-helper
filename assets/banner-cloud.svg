@@ -1,0 +1,93 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-label="Leviticus Cloud: suas contas caçam, vendem e juntam o loot com o PC desligado">
+  <rect width="1280" height="400" rx="20" fill="#0b0c10"/>
+  <rect x="1" y="1" width="1278" height="398" rx="19" fill="none" stroke="#2e313c"/>
+  <rect x="48" y="44" width="56" height="56" rx="14" fill="#0e2a24" stroke="#123f34"/>
+  <g transform="translate(58 54) scale(0.0703125)"><g transform="translate(0 512) scale(.1 -.1)" fill="#3ee6b6"><path d="M3620 4839 c-58 -50 -118 -102 -134 -116 -26 -23 -177 -142 -249
+-197 -16 -11 -34 -26 -40 -32 -61 -55 -414 -284 -572 -371 -181 -99 -478 -235
+-543 -248 -9 -2 -41 -12 -69 -24 -29 -11 -63 -22 -75 -25 -13 -2 -54 -13 -93
+-25 -38 -11 -81 -23 -95 -25 -14 -3 -25 -5 -25 -6 0 -1 -11 -3 -25 -5 -71 -9
+-156 -29 -165 -38 -7 -7 -5 -8 7 -4 9 3 19 3 22 -1 4 -3 13 -7 21 -9 25 -5 39
+-9 68 -21 16 -7 32 -12 37 -12 27 0 160 -105 197 -155 42 -56 81 -143 86 -194
+2 -15 6 -31 8 -36 20 -37 -2 -280 -37 -400 -8 -27 -14 -51 -14 -52 0 -2 0 -4
+-1 -5 0 -2 -2 -11 -4 -22 -2 -10 -13 -42 -25 -71 -12 -29 -23 -59 -24 -66 -2
+-8 -8 -27 -14 -42 -7 -16 -12 -30 -12 -32 0 -2 -13 -33 -30 -69 -16 -36 -43
+-96 -60 -132 -16 -36 -30 -70 -30 -75 0 -5 -4 -9 -9 -9 -7 0 -13 -14 -21 -48
+-1 -4 -7 -14 -14 -22 -6 -8 -18 -28 -26 -45 -21 -42 -159 -285 -180 -315 -9
+-14 -20 -32 -24 -40 -15 -33 -102 -167 -231 -360 -61 -91 -114 -170 -118 -177
+-4 -6 39 13 95 42 89 46 148 72 268 116 14 5 39 21 55 34 17 14 35 28 40 32 6
+5 28 23 50 41 51 42 65 41 29 -2 -51 -59 -64 -76 -58 -76 3 0 -6 -10 -18 -22
+-13 -13 -57 -68 -98 -123 -41 -55 -77 -102 -80 -105 -10 -8 -161 -226 -212
+-305 -126 -198 -314 -580 -332 -676 -3 -13 -5 -25 -7 -26 -1 -2 -2 -6 -3 -10
+-1 -5 -5 -14 -10 -21 -25 -41 9 -11 65 56 100 120 341 357 479 471 69 57 136
+113 150 124 14 12 68 52 120 89 52 37 105 75 118 84 100 74 535 309 586 318 6
+1 20 7 31 12 26 14 229 95 247 98 7 2 20 5 28 8 76 28 139 49 156 52 12 3 58
+16 103 30 44 14 91 27 103 30 13 2 64 16 115 31 51 14 103 28 116 31 14 2 54
+13 89 24 35 11 75 21 88 24 14 2 26 5 28 7 1 1 5 2 10 3 4 1 37 12 73 24 36
+12 76 24 89 27 147 28 530 299 530 375 0 6 5 10 10 10 6 0 10 8 10 18 0 13 -2
+14 -9 4 -4 -8 -10 -13 -12 -11 -2 1 -48 -19 -101 -44 -53 -26 -127 -58 -165
+-73 -60 -23 -81 -29 -118 -37 -5 -2 -16 -6 -22 -10 -7 -5 -13 -6 -13 -3 0 3
+-21 -1 -46 -9 -26 -8 -72 -17 -103 -20 -56 -6 -56 -6 -31 14 14 11 30 21 36
+21 6 0 45 25 88 55 42 30 76 53 76 51 0 -25 208 189 278 286 90 125 229 418
+257 541 2 10 7 28 10 40 4 13 -20 -7 -59 -49 -64 -70 -191 -187 -290 -269 -27
+-22 -54 -45 -60 -51 -16 -15 -204 -145 -251 -174 -22 -13 -43 -29 -47 -34 -4
+-6 -8 -7 -8 -2 0 5 -7 3 -15 -4 -53 -44 -528 -271 -575 -275 -4 0 -108 -37
+-180 -63 -8 -3 -23 -7 -34 -9 -10 -2 -46 -12 -80 -23 -33 -11 -74 -23 -91 -26
+-16 -2 -56 -11 -88 -19 -61 -16 -105 -25 -147 -31 -14 -1 -41 -6 -60 -9 -115
+-20 -151 -25 -205 -29 -50 -5 -56 -4 -35 6 184 82 172 71 196 173 1 6 15 48
+30 95 15 47 29 88 30 93 1 4 2 8 4 10 1 1 3 9 5 17 6 33 86 286 95 302 6 10
+10 26 10 36 0 10 5 23 12 30 7 7 9 12 5 12 -4 0 4 29 17 64 14 35 22 67 19 70
+-4 3 0 6 7 6 7 0 11 3 7 6 -3 4 3 29 14 58 11 28 30 83 43 121 14 39 30 84 37
+100 7 17 13 33 14 38 2 4 4 9 5 12 1 3 3 8 4 13 1 4 9 23 18 43 9 20 19 47 23
+60 8 25 67 173 90 224 7 17 31 73 53 125 22 52 55 127 73 165 18 39 34 72 34
+75 0 3 15 35 33 71 18 37 32 71 32 77 0 11 30 25 37 18 9 -9 12 -45 13 -196 1
+-132 15 -182 22 -82 1 6 5 12 10 12 5 0 7 4 3 9 -3 5 -1 12 5 16 6 4 8 11 5
+16 -4 5 -1 9 5 9 6 0 8 5 5 10 -4 6 -3 16 3 23 5 7 19 39 32 72 12 33 33 81
+46 107 13 27 23 49 22 50 -2 3 108 222 160 318 20 36 62 105 94 154 32 49 58
+93 58 97 0 5 4 9 8 9 4 0 16 15 27 33 10 17 22 37 27 42 32 42 144 183 156
+198 27 31 9 17 -98 -74z"/></g></g>
+  <text x="120" y="70" fill="#f4f4f5" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="20" font-weight="800" letter-spacing="3">LEVITICUS</text>
+  <text x="120" y="92" fill="#3ee6b6" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="13" letter-spacing="4">CLOUD</text>
+  <text x="48" y="168" fill="#f4f4f5" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="44" font-weight="800" letter-spacing="-1.5">Seu PC dorme.</text>
+  <text x="48" y="218" fill="#3ee6b6" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="44" font-weight="800" letter-spacing="-1.5">Suas contas não.</text>
+  <text x="48" y="256" fill="#9b9eaa" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="17" font-weight="500">Multi-conta na nuvem, 24h por dia. Controle pelo navegador ou pelo celular.</text>
+  <g font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="14">
+    <rect x="48" y="290" width="190" height="44" rx="10" fill="#17181f" stroke="#2e313c"/>
+    <text x="64" y="318" fill="#e8c36a" font-size="17" font-weight="500">R$ 75</text><text x="118" y="318" fill="#9b9eaa" font-size="12">/mês · 10 contas</text>
+    <rect x="250" y="290" width="190" height="44" rx="10" fill="#17181f" stroke="#3ee6b6"/>
+    <text x="266" y="318" fill="#e8c36a" font-size="17" font-weight="500">R$ 99</text><text x="320" y="318" fill="#9b9eaa" font-size="12">/mês · 20 contas</text>
+    <rect x="452" y="290" width="212" height="44" rx="10" fill="#0e2a24" stroke="#123f34"/>
+    <text x="558" y="318" fill="#3ee6b6" font-size="13" font-weight="500" text-anchor="middle">teste grátis · 24h · 1 conta</text>
+  </g>
+  <text x="48" y="372" fill="#6b6e7a" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="12">leviticusbot.com · + R$ 5 por conta extra · projeto independente, sem vínculo oficial com BaiakIdle</text>
+  <rect x="830" y="60" width="390" height="280" rx="16" fill="#111218" stroke="#2e313c"/>
+  <circle cx="852" cy="82" r="4" fill="#2e313c"/><circle cx="866" cy="82" r="4" fill="#2e313c"/><circle cx="880" cy="82" r="4" fill="#2e313c"/>
+  <text x="1200" y="86" fill="#6b6e7a" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="11" text-anchor="end">leviticusbot.com</text>
+  
+  <g transform="translate(860 110)">
+    <rect width="330" height="62" rx="12" fill="#17181f" stroke="#2e313c"/>
+    <rect x="14" y="14" width="34" height="34" rx="9" fill="#0e2a24"/>
+    <circle cx="31" cy="31" r="5" fill="#3ee6b6"/>
+    <text x="62" y="29" fill="#f4f4f5" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700">Conta 1</text>
+    <text x="62" y="47" fill="#9b9eaa" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="11">online · caçando</text>
+    <rect x="280" y="22" width="36" height="18" rx="9" fill="#0e2a24"/>
+    <text x="298" y="35" fill="#3ee6b6" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="10" text-anchor="middle">24h</text>
+  </g>
+  <g transform="translate(860 184)">
+    <rect width="330" height="62" rx="12" fill="#17181f" stroke="#2e313c"/>
+    <rect x="14" y="14" width="34" height="34" rx="9" fill="#0e2a24"/>
+    <circle cx="31" cy="31" r="5" fill="#3ee6b6"/>
+    <text x="62" y="29" fill="#f4f4f5" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700">Conta 2</text>
+    <text x="62" y="47" fill="#9b9eaa" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="11">online · caçando</text>
+    <rect x="280" y="22" width="36" height="18" rx="9" fill="#0e2a24"/>
+    <text x="298" y="35" fill="#3ee6b6" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="10" text-anchor="middle">24h</text>
+  </g>
+  <g transform="translate(860 258)">
+    <rect width="330" height="62" rx="12" fill="#17181f" stroke="#2e313c"/>
+    <rect x="14" y="14" width="34" height="34" rx="9" fill="#0e2a24"/>
+    <circle cx="31" cy="31" r="5" fill="#3ee6b6"/>
+    <text x="62" y="29" fill="#f4f4f5" font-family="'Plus Jakarta Sans','Segoe UI',Helvetica,Arial,sans-serif" font-size="15" font-weight="700">Conta 3</text>
+    <text x="62" y="47" fill="#9b9eaa" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="11">online · caçando</text>
+    <rect x="280" y="22" width="36" height="18" rx="9" fill="#0e2a24"/>
+    <text x="298" y="35" fill="#3ee6b6" font-family="'Azeret Mono',Consolas,'SFMono-Regular',monospace" font-size="10" text-anchor="middle">24h</text>
+  </g>
+</svg>

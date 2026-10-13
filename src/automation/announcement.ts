@@ -1,24 +1,19 @@
-export const ANNOUNCEMENT_SEEN_KEY = "leviticus-extension-announcement-seen";
+export const ANNOUNCEMENT_HIDDEN_KEY = "leviticus-extension-announcement-hidden";
 
-export function shouldShowAnnouncement(storage: Storage | null | undefined, version: string): boolean {
+/** Aparece em toda abertura do /jogar até o jogador pedir "não mostrar novamente". */
+export function shouldShowAnnouncement(storage: Storage | null | undefined): boolean {
   if (!storage) return true;
   try {
-    return storage.getItem(ANNOUNCEMENT_SEEN_KEY) !== version;
+    return storage.getItem(ANNOUNCEMENT_HIDDEN_KEY) !== "1";
   } catch {
     return true;
   }
 }
 
-export function markAnnouncementSeen(storage: Storage | null | undefined, version: string): void {
+export function hideAnnouncementForever(storage: Storage | null | undefined): void {
   try {
-    storage?.setItem(ANNOUNCEMENT_SEEN_KEY, version);
+    storage?.setItem(ANNOUNCEMENT_HIDDEN_KEY, "1");
   } catch {
     // Private browsing or a restricted storage area should not block the menu.
   }
-}
-
-export function consumeAnnouncement(storage: Storage | null | undefined, version: string): boolean {
-  if (!shouldShowAnnouncement(storage, version)) return false;
-  markAnnouncementSeen(storage, version);
-  return true;
 }

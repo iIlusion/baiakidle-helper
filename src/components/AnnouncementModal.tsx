@@ -2,8 +2,7 @@ import * as React from "react";
 import { LeviticusMark } from "./LeviticusMark";
 import { DiscordIcon, LEVITICUS_DISCORD_URL } from "./DiscordLink";
 
-export const LEVITICUS_SITE_URL = "https://leviticusbot.com";
-const BAIAKIDLE_MARK_URL = "./brand/icon-gold.svg";
+export const LEVITICUS_SITE_URL = "https://www.leviticusbot.com/?camp=p2CBR4cb";
 
 function CloseIcon(): React.JSX.Element {
   return (
@@ -22,7 +21,42 @@ function ExternalLinkIcon(): React.JSX.Element {
   );
 }
 
-export function AnnouncementModal({ onClose }: { onClose: () => void }): React.JSX.Element {
+function AccountsIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+      <rect x="3" y="4" width="8" height="7" rx="1.5" />
+      <rect x="13" y="4" width="8" height="7" rx="1.5" />
+      <rect x="3" y="13" width="8" height="7" rx="1.5" />
+      <rect x="13" y="13" width="8" height="7" rx="1.5" />
+    </svg>
+  );
+}
+
+function PowerIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+      <path d="M12 3v8" />
+      <path d="M6.3 7.3a8 8 0 1 0 11.4 0" />
+    </svg>
+  );
+}
+
+function PhoneIcon(): React.JSX.Element {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+      <rect x="7" y="2.5" width="10" height="19" rx="2.5" />
+      <path d="M11 18.5h2" />
+    </svg>
+  );
+}
+
+const FEATURES = [
+  { icon: <AccountsIcon />, title: "Multi-conta num desk só", copy: "Todas as suas contas rodando juntas, cada uma com conexão dedicada." },
+  { icon: <PowerIcon />, title: "Desligue o computador", copy: "Roda na nuvem: seu PC dorme, suas contas não." },
+  { icon: <PhoneIcon />, title: "Controle pelo celular", copy: "Opere tudo pelo navegador do computador ou pelo celular." }
+];
+
+export function AnnouncementModal({ onClose, onHide }: { onClose: () => void; onHide: () => void }): React.JSX.Element {
   React.useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
@@ -42,39 +76,44 @@ export function AnnouncementModal({ onClose }: { onClose: () => void }): React.J
       <section className="lev-announcement-modal" role="dialog" aria-modal="true" aria-labelledby="lev-announcement-title">
         <button className="lev-announcement-close" type="button" onClick={onClose} aria-label="Fechar aviso"><CloseIcon /></button>
         <header className="lev-announcement-header">
-          <div className="lev-announcement-eyebrow">
-            <span>UMA NOVA FASE</span>
-            <span>ECOSSISTEMA LEVITICUS</span>
-          </div>
-          <div className="lev-announcement-brand-strip" data-testid="lev-announcement-brand-strip" aria-label="BaiakIdle e Leviticus">
-            <div className="lev-announcement-brand lev-announcement-brand-baiak">
-              <div className="lev-announcement-brand-icon lev-announcement-brand-icon-baiak">
-                <img src={BAIAKIDLE_MARK_URL} alt="BaiakIdle" />
-              </div>
-              <div className="lev-announcement-brand-name">
-                <strong>BAIAK</strong>
-                <span>IDLE</span>
-              </div>
-            </div>
-            <span className="lev-announcement-brand-link" aria-hidden="true">×</span>
-            <div className="lev-announcement-brand lev-announcement-brand-leviticus" data-testid="lev-announcement-leviticus-mark">
-              <div className="lev-announcement-brand-icon lev-announcement-brand-icon-leviticus" aria-hidden="true"><LeviticusMark /></div>
-              <div className="lev-announcement-brand-name">
-                <strong>LEVITICUS</strong>
-                <span>EXTENSION</span>
-              </div>
+          <div className="lev-announcement-brand" data-testid="lev-announcement-leviticus-mark">
+            <div className="lev-announcement-brand-icon" aria-hidden="true"><LeviticusMark /></div>
+            <div className="lev-announcement-brand-name">
+              <strong>LEVITICUS</strong>
+              <span>CLOUD</span>
             </div>
           </div>
+          <div className="lev-announcement-eyebrow">AGORA NA NUVEM</div>
         </header>
         <div className="lev-announcement-content">
-          <div className="lev-announcement-mark" aria-hidden="true"><LeviticusMark /></div>
-          <h2 id="lev-announcement-title">Leviticus Extension</h2>
-          <p className="lev-announcement-lead">O Baiakidle Helper agora se chama Leviticus Extension. A extensão faz parte do ecossistema Leviticus, com automações para jogos idle.</p>
-          <p className="lev-announcement-support">Quer conhecer os bots do BaiakIdle e do Huntera? Acesse o site ou entre no Discord para acompanhar as novidades.</p>
+          <h2 id="lev-announcement-title">Leviticus Cloud</h2>
+          <p className="lev-announcement-lead">Suas contas caçam, vendem e juntam o loot 24h por dia. Liga hoje à noite, acorda com o loot feito.</p>
+
+          <ul className="lev-announcement-features">
+            {FEATURES.map(feature => (
+              <li key={feature.title}>
+                <span className="lev-announcement-feature-icon">{feature.icon}</span>
+                <span className="lev-announcement-feature-copy"><strong>{feature.title}</strong><small>{feature.copy}</small></span>
+              </li>
+            ))}
+          </ul>
+
+          <div className="lev-announcement-plans" data-testid="lev-announcement-plans">
+            <div className="lev-announcement-plan">
+              <span className="lev-announcement-price"><b>R$ 75</b><i>/mês</i></span>
+              <span className="lev-announcement-plan-limit">até 10 contas</span>
+            </div>
+            <div className="lev-announcement-plan lev-announcement-plan-best">
+              <span className="lev-announcement-price"><b>R$ 99</b><i>/mês</i></span>
+              <span className="lev-announcement-plan-limit">até 20 contas</span>
+            </div>
+          </div>
+          <div className="lev-announcement-extra">+ <b>R$ 5</b> por conta extra · assine quantas quiser</div>
+
           <div className="lev-announcement-actions">
             <a className="lev-announcement-action lev-announcement-action-site" href={LEVITICUS_SITE_URL} target="_blank" rel="noreferrer" onClick={onClose}>
               <span className="lev-announcement-action-icon"><ExternalLinkIcon /></span>
-              <span className="lev-announcement-action-copy"><strong>Conhecer o site</strong><small>leviticusbot.com</small></span>
+              <span className="lev-announcement-action-copy"><strong>Conhecer o site</strong><small>teste grátis · 24h · 1 conta · leviticusbot.com</small></span>
               <span className="lev-announcement-action-arrow" aria-hidden="true">↗</span>
             </a>
             <a className="lev-announcement-action lev-announcement-action-discord" href={LEVITICUS_DISCORD_URL} target="_blank" rel="noreferrer" onClick={onClose}>
@@ -83,7 +122,7 @@ export function AnnouncementModal({ onClose }: { onClose: () => void }): React.J
               <span className="lev-announcement-action-arrow" aria-hidden="true">↗</span>
             </a>
           </div>
-          <div className="lev-announcement-footer"><span>BaiakIdle · Huntera</span><span>Leviticus Extension</span></div>
+          <div className="lev-announcement-footer"><span>Projeto independente · sem vínculo oficial com BaiakIdle</span><button type="button" className="lev-announcement-hide" onClick={onHide}>Não mostrar novamente</button></div>
         </div>
       </section>
     </div>

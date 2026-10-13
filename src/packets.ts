@@ -133,3 +133,13 @@ export function packRoomRecordForTest(
 }
 
 export { packStr, packBool };
+
+/** Codex: consulta o que serviria (só leitura). Resposta: `codexpreviewres`. */
+export function codexPreviewPacket(id: string): string {
+  return packRoomRecord("codexpreview", ["id"], [packStr(id)]);
+}
+
+/** Codex: entrega (destrói os itens). `above:false` nunca usa raridade maior que a pedida. Resposta: `codexres`. */
+export function codexDeliverPacket(id: string, above: boolean): string {
+  return packRoomRecord("codexdeliver", ["id", "above"], [packStr(id), packBool(above)]);
+}
